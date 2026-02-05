@@ -113,7 +113,7 @@ The script will use these labels (they'll be auto-created if they don't exist):
 
 ## Notes
 
-- **INFRA-001** and **INFRA-002** are already completed (this PR)
+- **INFRA-001** and **INFRA-002** are already completed (in PR #2 - Phase 1)
 - You may want to immediately close those issues as done
 - **CFG-001** to **CFG-003** should be started next as they're P0 dependencies
 - The issues will NOT auto-link dependencies - that needs to be done manually or with a follow-up script
