@@ -1,0 +1,71 @@
+av-studio/
+├── pyproject.toml                 # Project dependencies
+├── docker-compose.yml             # Optional containerization
+├── .env.example                   # Environment template
+├── config/
+│   ├── __init__.py
+│   ├── settings.py                # Pydantic settings
+│   ├── models.yaml                # Model configurations
+│   └── pricing.yaml               # API pricing data
+├── src/
+│   ├── __init__.py
+│   ├── main.py                    # FastAPI application
+│   ├── gateway/
+│   │   ├── __init__.py
+│   │   ├── router.py              # Smart router
+│   │   ├── auth.py                # Authentication
+│   │   ├── rate_limiter.py        # Rate limiting
+│   │   ├── token_analyzer.py      # Token counting
+│   │   └── cost_calculator.py     # Cost tracking
+│   ├── agents/
+│   │   ├── __init__.py
+│   │   ├── orchestrator.py        # Agent coordinator
+│   │   ├── audio_agent.py         # Audio processing agent
+│   │   ├── video_agent.py         # Video processing agent
+│   │   └── base_agent.py          # Base agent class
+│   ├── llm/
+│   │   ├── __init__.py
+│   │   ├── ollama_client.py       # Ollama integration
+│   │   ├── mlx_client.py          # MLX-LM native
+│   │   ├── external_clients.py    # OpenAI, Claude, Gemini
+│   │   └── model_selector.py      # Smart model selection
+│   ├── processing/
+│   │   ├── __init__.py
+│   │   ├── audio/
+│   │   │   ├── __init__.py
+│   │   │   ├── demucs_processor.py
+│   │   │   ├── whisper_processor.py
+│   │   │   ├── tts_processor.py
+│   │   │   └── effects.py         # Pedalboard effects
+│   │   └── video/
+│   │       ├── __init__.py
+│   │       ├── decoder.py         # TorchCodec
+│   │       ├── cv_processor.py    # OpenCV processing
+│   │       └── effects.py
+│   ├── mcp/
+│   │   ├── __init__.py
+│   │   ├── server.py              # MCP server
+│   │   ├── tools/
+│   │   │   ├── __init__.py
+│   │   │   ├── audio_tools.py
+│   │   │   ├── video_tools.py
+│   │   │   └── api_tools.py
+│   │   └── resources/
+│   │       └── __init__.py
+│   ├── external/
+│   │   ├── __init__.py
+│   │   ├── elevenlabs.py
+│   │   ├── bmi.py
+│   │   ├── distrokid.py
+│   │   └── base_client.py
+│   └── storage/
+│       ├── __init__.py
+│       ├── database.py            # SQLite/SQLAlchemy
+│       ├── vector_store.py        # ChromaDB
+│       └── media_store.py         # File management
+├── ui/
+│   └── svelte-app/                # Frontend (optional)
+├── tests/
+└── scripts/
+    ├── setup.sh
+    └── benchmark.py
