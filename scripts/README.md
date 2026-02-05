@@ -46,7 +46,7 @@ python scripts/create_task_issues.py --dry-run
 
 ## Task Organization
 
-### Phase 1: Foundation (11 tasks)
+### Phase 1: Foundation (6 tasks)
 - **INFRA-001 to INFRA-003**: Infrastructure setup
 - **CFG-001 to CFG-003**: Configuration system
 
