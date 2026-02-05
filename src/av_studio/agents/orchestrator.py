@@ -186,7 +186,7 @@ class AudioAgent(BaseAgent):
 
     def __init__(self, llm_client: MLXClient | None = None):
         super().__init__(AgentRole.AUDIO, llm_client)
-        from processing.audio.pipeline import audio_processor
+        from av_studio.processing.audio.pipeline import audio_processor
 
         self.processor = audio_processor
 

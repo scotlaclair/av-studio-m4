@@ -3,6 +3,7 @@ Token analysis and cost calculation for LLM requests.
 """
 
 from dataclasses import dataclass
+from typing import Any
 
 import tiktoken
 from transformers import AutoTokenizer
@@ -37,7 +38,7 @@ class TokenAnalyzer:
     """
 
     def __init__(self):
-        self._tokenizers: dict[str, any] = {}
+        self._tokenizers: dict[str, Any] = {}
         self._tiktoken_encodings: dict[str, tiktoken.Encoding] = {}
 
     def count_tokens(self, text: str | list[dict], model: str = "gpt-4o") -> TokenCount:
