@@ -156,8 +156,14 @@ jobs:
 
               # Priority label
               priority = task.get('priority', 'P2')
-              if priority in ['P0', 'P1', 'P2', 'P3']:
-                  labels.append(priority.lower() + '-critical' if priority == 'P0' else priority.lower())
+              priority_labels = {
+                  'P0': 'P0-critical',
+                  'P1': 'P1-high',
+                  'P2': 'P2-medium',
+                  'P3': 'P3-low',
+              }
+              if priority in priority_labels:
+                  labels.append(priority_labels[priority])
 
               # Type label
               task_type = task.get('type', 'feature')
