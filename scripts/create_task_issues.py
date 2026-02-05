@@ -13,7 +13,6 @@ Options:
     --dry-run       Print what would be created without actually creating issues
 """
 
-import os
 import re
 import sys
 import argparse
