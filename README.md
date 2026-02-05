@@ -55,7 +55,7 @@ av-studio-m4/
 ├── spec-kit/               # Project specifications
 ├── tests/                  # Test suite
 ├── scripts/                # Setup and utility scripts
-├── config/                 # Configuration files (models, pricing)
+├── config/                 # Planned: Configuration files (models, pricing)
 └── pyproject.toml          # Project dependencies
 ```
 

@@ -36,6 +36,7 @@ dependencies = [
     "faster-whisper>=1.2.1",
     "soundfile>=0.12.1",
     "pydub>=0.25.1",
+    "pyloudnorm>=0.1.0",
     
     # Video Processing
     "opencv-python>=4.13.0.90",
@@ -107,7 +108,7 @@ select = [
     "UP", # pyupgrade
 ]
 ignore = [
-    "E501", # line too long, handled by black
+    "E501", # line too long, handled by ruff format
     "B008", # do not perform function calls in argument defaults
 ]
 

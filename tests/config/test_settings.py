@@ -20,8 +20,12 @@ def test_model_provider_enum():
     assert ModelProvider.GOOGLE == "google"
 
 
-def test_settings_paths_exist():
+def test_settings_paths_exist(tmp_path):
     """Test that configured paths are created."""
+    # Use temporary directory to avoid polluting filesystem
+    import os
+    os.environ["AV_BASE_DIR"] = str(tmp_path / "av-studio")
+    
     settings = Settings()
     assert settings.base_dir.exists()
     assert settings.media_dir.exists()
