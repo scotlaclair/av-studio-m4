@@ -205,3 +205,21 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# AV Studio specific
+output/
+cache/
+logs/
+*.db
+*.db-journal
+chromadb/
+av_studio.db
+temp/
+models/
+*.wav
+*.mp3
+*.mp4
+*.avi
+*.mkv
+*.flac
+*.m4a
