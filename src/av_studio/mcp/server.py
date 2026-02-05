@@ -145,6 +145,26 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         )
         return [TextContent(type="text", text=json.dumps(transcribe_result, indent=2))]
 
+    if name == "apply_audio_effects":
+        from av_studio.processing.audio.pipeline import audio_processor
+
+        output_path = audio_processor.apply_effects(
+            Path(arguments["audio_path"]),
+            effects=arguments["effects"],
+        )
+        return [
+            TextContent(
+                type="text",
+                text=json.dumps(
+                    {
+                        "output_path": str(output_path),
+                        "effects_applied": len(arguments["effects"]),
+                    },
+                    indent=2,
+                ),
+            )
+        ]
+
     if name == "analyze_cost":
         from av_studio.gateway.token_analyzer import cost_calculator, token_analyzer
 
