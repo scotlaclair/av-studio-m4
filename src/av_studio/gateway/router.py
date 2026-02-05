@@ -1,13 +1,11 @@
 """
 Smart Router: Intelligent model selection based on task, cost, and performance.
 """
-import asyncio
-from dataclasses import dataclass, field
-from typing import Optional, Literal, Callable, Any
-from enum import Enum
-import time
 
-from av_studio.config.settings import settings, ModelProvider
+from dataclasses import dataclass
+from enum import Enum
+
+from av_studio.config.settings import ModelProvider
 
 
 class TaskType(str, Enum):
@@ -25,6 +23,7 @@ class TaskType(str, Enum):
 @dataclass
 class ModelCapability:
     """Defines what a model can do and its characteristics."""
+
     provider: ModelProvider
     model_id: str
     supports: list[TaskType]
@@ -113,6 +112,7 @@ MODEL_REGISTRY: dict[str, ModelCapability] = {
 @dataclass
 class RoutingDecision:
     """Result of the smart routing decision."""
+
     model_key: str
     model: ModelCapability
     reason: str
@@ -123,6 +123,7 @@ class RoutingDecision:
 @dataclass
 class RouterConfig:
     """Configuration for the smart router."""
+
     prefer_local: bool = True
     max_cost_usd: float = 0.50
     max_latency_ms: int = 2000
@@ -139,24 +140,24 @@ class SmartRouter:
     - Quality needs
     - Local vs external preference
     """
-    
-    def __init__(self, config: Optional[RouterConfig] = None):
+
+    def __init__(self, config: RouterConfig | None = None):
         self.config = config or RouterConfig()
         self.model_registry = MODEL_REGISTRY.copy()
         self._latency_history: dict[str, list[float]] = {}
-    
+
     def route(
         self,
         task: TaskType,
         input_tokens: int,
         expected_output_tokens: int = 500,
         require_local: bool = False,
-        require_quality: Optional[float] = None,
-        max_cost: Optional[float] = None,
+        require_quality: float | None = None,
+        max_cost: float | None = None,
     ) -> RoutingDecision:
         """
         Select the optimal model for a given task.
-        
+
         Args:
             task: The type of task to perform
             input_tokens: Estimated input token count
@@ -164,43 +165,43 @@ class SmartRouter:
             require_local: Force local model selection
             require_quality: Minimum quality score required
             max_cost: Maximum cost allowed for this request
-        
+
         Returns:
             RoutingDecision with the selected model and reasoning
         """
         candidates = []
-        
+
         for key, model in self.model_registry.items():
             # Filter by task support
             if task not in model.supports:
                 continue
-            
+
             # Filter by local requirement
             if require_local and not model.is_local:
                 continue
-            
+
             # Filter by context length
             if input_tokens > model.max_context:
                 continue
-            
+
             # Calculate estimated cost
             cost = self._calculate_cost(model, input_tokens, expected_output_tokens)
-            
+
             # Filter by cost
             effective_max_cost = max_cost or self.config.max_cost_usd
             if cost > effective_max_cost:
                 continue
-            
+
             # Filter by quality
             min_quality = require_quality or self.config.min_quality_score
             if model.quality_score < min_quality:
                 continue
-            
+
             # Get dynamic latency estimate
             latency = self._get_latency_estimate(key, model)
-            
+
             candidates.append((key, model, cost, latency))
-        
+
         if not candidates:
             # Fallback to default
             fallback = self.model_registry[self.config.fallback_model]
@@ -211,19 +212,19 @@ class SmartRouter:
                 estimated_cost=0.0,
                 estimated_latency_ms=fallback.avg_latency_ms,
             )
-        
+
         # Score and sort candidates
         scored = []
         for key, model, cost, latency in candidates:
             score = self._score_model(model, cost, latency)
             scored.append((score, key, model, cost, latency))
-        
+
         scored.sort(reverse=True, key=lambda x: x[0])
         best_score, best_key, best_model, best_cost, best_latency = scored[0]
-        
+
         # Generate reason
         reason = self._generate_reason(best_model, best_cost, best_latency, task)
-        
+
         return RoutingDecision(
             model_key=best_key,
             model=best_model,
@@ -231,18 +232,15 @@ class SmartRouter:
             estimated_cost=best_cost,
             estimated_latency_ms=best_latency,
         )
-    
+
     def _calculate_cost(
-        self, 
-        model: ModelCapability, 
-        input_tokens: int, 
-        output_tokens: int
+        self, model: ModelCapability, input_tokens: int, output_tokens: int
     ) -> float:
         """Calculate the estimated cost for a request."""
         input_cost = (input_tokens / 1000) * model.cost_per_1k_input
         output_cost = (output_tokens / 1000) * model.cost_per_1k_output
         return input_cost + output_cost
-    
+
     def _get_latency_estimate(self, key: str, model: ModelCapability) -> int:
         """Get latency estimate, using historical data if available."""
         if key in self._latency_history and self._latency_history[key]:
@@ -250,59 +248,50 @@ class SmartRouter:
             recent = self._latency_history[key][-10:]
             return int(sum(recent) / len(recent))
         return model.avg_latency_ms
-    
-    def _score_model(
-        self, 
-        model: ModelCapability, 
-        cost: float, 
-        latency: int
-    ) -> float:
+
+    def _score_model(self, model: ModelCapability, cost: float, latency: int) -> float:
         """
         Score a model based on multiple factors.
         Higher score = better choice.
         """
         score = 0.0
-        
+
         # Quality contributes 40%
         score += model.quality_score * 40
-        
+
         # Cost efficiency contributes 30% (lower cost = higher score)
         if cost == 0:
             score += 30  # Free is best
         else:
             cost_score = max(0, 30 - (cost * 100))  # Penalize high cost
             score += cost_score
-        
+
         # Latency contributes 20% (lower latency = higher score)
         latency_score = max(0, 20 - (latency / 100))
         score += latency_score
-        
+
         # Local preference contributes 10%
         if self.config.prefer_local and model.is_local:
             score += 10
-        
+
         return score
-    
+
     def _generate_reason(
-        self, 
-        model: ModelCapability, 
-        cost: float, 
-        latency: int, 
-        task: TaskType
+        self, model: ModelCapability, cost: float, latency: int, task: TaskType
     ) -> str:
         """Generate a human-readable reason for the selection."""
         parts = []
-        
+
         if model.is_local:
             parts.append("local model (zero cost)")
         else:
             parts.append(f"cost: ${cost:.4f}")
-        
+
         parts.append(f"latency: ~{latency}ms")
         parts.append(f"quality: {model.quality_score:.0%}")
-        
+
         return f"Selected {model.model_id} for {task.value}: {', '.join(parts)}"
-    
+
     def record_latency(self, model_key: str, latency_ms: float):
         """Record actual latency for future routing decisions."""
         if model_key not in self._latency_history:

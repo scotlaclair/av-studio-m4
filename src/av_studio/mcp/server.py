@@ -1,12 +1,13 @@
 """
 Model Context Protocol (MCP) server for extending studio capabilities.
 """
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
+
 import json
 from pathlib import Path
 
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from mcp.types import TextContent, Tool
 
 # Create MCP server
 app = Server("av-studio")
@@ -111,34 +112,42 @@ async def list_tools() -> list[Tool]:
 @app.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     """Execute a tool call."""
-    
+
     if name == "separate_stems":
-        from processing.audio.pipeline import audio_processor
+        from av_studio.processing.audio.pipeline import audio_processor
+
         result = audio_processor.separate_stems(
             Path(arguments["audio_path"]),
             model=arguments.get("model", "htdemucs_ft"),
         )
-        return [TextContent(
-            type="text",
-            text=json.dumps({
-                "vocals": str(result.vocals),
-                "drums": str(result.drums),
-                "bass": str(result.bass),
-                "other": str(result.other),
-                "model": result.model_used,
-            }, indent=2)
-        )]
-    
+        return [
+            TextContent(
+                type="text",
+                text=json.dumps(
+                    {
+                        "vocals": str(result.vocals),
+                        "drums": str(result.drums),
+                        "bass": str(result.bass),
+                        "other": str(result.other),
+                        "model": result.model_used,
+                    },
+                    indent=2,
+                ),
+            )
+        ]
+
     if name == "transcribe_audio":
-        from processing.audio.pipeline import audio_processor
+        from av_studio.processing.audio.pipeline import audio_processor
+
         result = audio_processor.transcribe(
             Path(arguments["audio_path"]),
             language=arguments.get("language"),
         )
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
-    
+
     if name == "analyze_cost":
-        from gateway.token_analyzer import token_analyzer, cost_calculator
+        from av_studio.gateway.token_analyzer import cost_calculator, token_analyzer
+
         tokens = token_analyzer.count_tokens(
             arguments["text"],
             arguments.get("model", "gpt-4o"),
@@ -148,28 +157,54 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
             tokens.input_tokens,
             tokens.estimated_output_tokens,
         )
-        return [TextContent(type="text", text=json.dumps({
-            "tokens": tokens.__dict__,
-            "cost": cost.__dict__,
-        }, indent=2))]
-    
+        return [
+            TextContent(
+                type="text",
+                text=json.dumps(
+                    {
+                        "tokens": tokens.__dict__,
+                        "cost": cost.__dict__,
+                    },
+                    indent=2,
+                ),
+            )
+        ]
+
     if name == "route_model":
-        from gateway.router import smart_router, TaskType
+        from av_studio.gateway.router import TaskType, smart_router
+
         decision = smart_router.route(
             TaskType(arguments["task_type"]),
             arguments.get("input_length", 1000),
             require_local=arguments.get("require_local", False),
         )
-        return [TextContent(type="text", text=json.dumps({
-            "model": decision.model_key,
-            "reason": decision.reason,
-            "estimated_cost": decision.estimated_cost,
-            "estimated_latency_ms": decision.estimated_latency_ms,
-        }, indent=2))]
-    
+        return [
+            TextContent(
+                type="text",
+                text=json.dumps(
+                    {
+                        "model": decision.model_key,
+                        "reason": decision.reason,
+                        "estimated_cost": decision.estimated_cost,
+                        "estimated_latency_ms": decision.estimated_latency_ms,
+                    },
+                    indent=2,
+                ),
+            )
+        ]
+
     return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
 
 async def main():
     """Run the MCP server."""
-    async with stdio_server() as (read_stream,
+    async with stdio_server() as (read_stream, write_stream):
+        await app.run(
+            read_stream, write_stream, app.create_initialization_options()
+        )
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio.run(main())
