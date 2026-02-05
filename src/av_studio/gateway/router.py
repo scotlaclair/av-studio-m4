@@ -3,12 +3,12 @@ Smart Router: Intelligent model selection based on task, cost, and performance.
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from av_studio.config.settings import ModelProvider
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     CHAT = "chat"
     CODE = "code"
     AUDIO_TRANSCRIPTION = "audio_transcription"

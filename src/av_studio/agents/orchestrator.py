@@ -6,7 +6,7 @@ import asyncio
 import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 # from av_studio.llm.ollama_client import OllamaClient  # TODO: Create ollama_client module
@@ -14,7 +14,7 @@ from av_studio.gateway.router import TaskType
 from av_studio.llm.mlx_client import MLXClient, mlx_client
 
 
-class AgentRole(str, Enum):
+class AgentRole(StrEnum):
     COORDINATOR = "coordinator"
     AUDIO = "audio"
     VIDEO = "video"

@@ -1,6 +1,5 @@
 """Test configuration settings module."""
-import pytest
-from av_studio.config.settings import Settings, ModelProvider
+from av_studio.config.settings import ModelProvider, Settings
 
 
 def test_settings_default():

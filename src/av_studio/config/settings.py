@@ -2,14 +2,14 @@
 Central configuration using Pydantic Settings for type safety and validation.
 """
 
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import Field  # type: ignore[import-not-found,unused-ignore]
 from pydantic_settings import BaseSettings  # type: ignore[import-not-found,unused-ignore]
 
 
-class ModelProvider(str, Enum):
+class ModelProvider(StrEnum):
     OLLAMA = "ollama"
     MLX = "mlx"
     OPENAI = "openai"
