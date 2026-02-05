@@ -17,9 +17,8 @@ on:
         default: 'all'
 
 env:
-  PROJECT_NUMBER: 2
-  PROJECT_OWNER: scotlaclair
-  GH_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
+  PROJECT_NUMBER: "2"
+  PROJECT_OWNER: "scotlaclair"
 
 jobs:
   setup-labels:
@@ -29,21 +28,18 @@ jobs:
       - name: Create all labels
         uses: actions/github-script@v7
         with:
-          github-token: ${{ env.GH_TOKEN }}
+          github-token: ${{ secrets.AUTOMATION_TOKEN }}
           script: |
             const labels = [
-              // Priority
               { name: 'P0-critical', color: 'B60205', description: 'Critical - blocks release' },
               { name: 'P1-high', color: 'D93F0B', description: 'High priority' },
               { name: 'P2-medium', color: 'FBCA04', description: 'Medium priority' },
               { name: 'P3-low', color: '0E8A16', description: 'Low priority' },
-              // Type
               { name: 'type:feature', color: '1D76DB', description: 'New feature' },
               { name: 'type:infra', color: '5319E7', description: 'Infrastructure' },
               { name: 'type:docs', color: '0075CA', description: 'Documentation' },
               { name: 'type:test', color: 'BFD4F2', description: 'Testing' },
               { name: 'type:security', color: 'B60205', description: 'Security' },
-              // Phase
               { name: 'phase:1-foundation', color: 'C2E0C6', description: 'Phase 1: Foundation' },
               { name: 'phase:2-gateway', color: 'BFDADC', description: 'Phase 2: Gateway Layer' },
               { name: 'phase:3-llm', color: 'D4C5F9', description: 'Phase 3: LLM Integration' },
@@ -51,30 +47,13 @@ jobs:
               { name: 'phase:5-agents', color: 'F9D0C4', description: 'Phase 5: Agent System' },
               { name: 'phase:6-api', color: 'C5DEF5', description: 'Phase 6: API Layer' },
               { name: 'phase:7-mcp', color: 'E6E6FA', description: 'Phase 7: MCP Server' },
-              // Agent
               { name: 'agent:coder', color: 'FBEF79', description: 'Coder Agent (Copilot/Codex)' },
               { name: 'agent:reviewer', color: 'F9D0C4', description: 'Reviewer Agent' },
               { name: 'agent:security', color: 'E99695', description: 'Security Agent' },
               { name: 'agent:docs', color: 'C5DEF5', description: 'Documentation Agent' },
-              { name: 'agent:orchestrator', color: 'D4C5F9', description: 'Orchestrator Agent' },
-              // Gate
               { name: 'gate:blocked', color: 'B60205', description: 'Blocked at gate' },
               { name: 'gate:human-required', color: 'D93F0B', description: 'Human approval needed' },
-              { name: 'gate:passed', color: '0E8A16', description: 'Gate passed' },
-              { name: 'gate:pending', color: 'FBCA04', description: 'Gate pending review' },
-              // State
-              { name: 'state:intake', color: 'EEEEEE', description: '📥 Intake' },
-              { name: 'state:specify', color: '1D76DB', description: '📋 Specify' },
-              { name: 'state:plan', color: '5319E7', description: '🏗️ Plan' },
-              { name: 'state:decompose', color: '5319E7', description: '🧩 Decompose' },
-              { name: 'state:implement', color: 'FBCA04', description: '💻 Implement' },
-              { name: 'state:verify', color: 'FBCA04', description: '✅ Verify' },
-              { name: 'state:review', color: 'D93F0B', description: '🔍 Review' },
-              { name: 'state:integrate', color: 'D93F0B', description: '🔗 Integrate' },
-              { name: 'state:document', color: '0E8A16', description: '📚 Document' },
-              { name: 'state:harden', color: 'B60205', description: '🔒 Harden' },
-              { name: 'state:release', color: '0E8A16', description: '🚀 Release' },
-              { name: 'state:learn', color: '0E8A16', description: '📊 Learn' },
+              { name: 'gate:passed', color: '0E8A16', description: 'Gate passed' }
             ];
             
             for (const label of labels) {
@@ -84,12 +63,12 @@ jobs:
                   repo: context.repo.repo,
                   ...label
                 });
-                console.log(`✅ Created: ${label.name}`);
+                console.log('Created: ' + label.name);
               } catch (e) {
                 if (e.status === 422) {
-                  console.log(`⏭️ Exists: ${label.name}`);
+                  console.log('Exists: ' + label.name);
                 } else {
-                  console.error(`❌ Failed: ${label.name}`, e.message);
+                  console.error('Failed: ' + label.name + ' - ' + e.message);
                 }
               }
             }
@@ -99,7 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ env.GH_TOKEN }}
+          token: ${{ secrets.AUTOMATION_TOKEN }}
       - name: Create dev branch
         run: |
           git config user.name "github-actions[bot]"
@@ -117,67 +96,54 @@ jobs:
       - name: Create All Task Issues
         uses: actions/github-script@v7
         with:
-          github-token: ${{ env.GH_TOKEN }}
+          github-token: ${{ secrets.AUTOMATION_TOKEN }}
           script: |
             const phase = '${{ inputs.phase }}';
             
-            // ============================================================
-            // COMPLETE TASK DEFINITIONS FROM SPEC-KIT
-            // ============================================================
+            const phaseNames = {
+              '1': 'foundation',
+              '2': 'gateway', 
+              '3': 'llm',
+              '4': 'audio',
+              '5': 'agents',
+              '6': 'api',
+              '7': 'mcp'
+            };
             
             const allTasks = [
-              // ==================== PHASE 1: FOUNDATION ====================
               {
                 id: 'INFRA-001',
                 title: '[INFRA-001] Initialize repository structure',
                 phase: '1',
                 priority: 'P0-critical',
                 type: 'type:infra',
-                estimate: 2,
-                dependencies: [],
-                body: `## Task: INFRA-001 - Initialize repository structure
-
-**Phase:** 1 - Foundation | **Priority:** P0-critical | **Estimate:** 2 hours  
-**Dependencies:** None
-
----
-
-### Description
-Set up the initial repository structure per \`spec-kit_tasks.md\` and \`av_studio_project_structure.txt\`.
-
-### Acceptance Criteria
-- [ ] pyproject.toml with all dependencies (torch, mlx, demucs, fastapi, etc.)
-- [ ] src/av_studio/ package structure created with __init__.py
-- [ ] .github/workflows/ directory created
-- [ ] spec-kit/ directory with constitution.md, spec.md, plan.md, tasks.md
-- [ ] .env.example with all required environment variables
-- [ ] Updated README.md with project overview
-
-### Files to Create
-\`\`\`
-pyproject.toml
-src/av_studio/__init__.py
-src/av_studio/py.typed
-src/av_studio/config/__init__.py
-src/av_studio/gateway/__init__.py
-src/av_studio/llm/__init__.py
-src/av_studio/processing/__init__.py
-src/av_studio/processing/audio/__init__.py
-src/av_studio/agents/__init__.py
-src/av_studio/mcp/__init__.py
-src/av_studio/api/__init__.py
-.env.example
-\`\`\`
-
-### Technical Notes
-- Use Python 3.12
-- Configure for Apple Silicon / M4 Max optimization
-- Include dev dependencies (pytest, ruff, mypy)
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch, create PR when complete.  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: INFRA-001 - Initialize repository structure',
+                  '',
+                  '**Phase:** 1 - Foundation | **Priority:** P0-critical | **Estimate:** 2 hours',
+                  '**Dependencies:** None',
+                  '',
+                  '---',
+                  '',
+                  '### Description',
+                  'Set up the initial repository structure per spec-kit design.',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] pyproject.toml with all dependencies',
+                  '- [ ] src/av_studio/ package structure created',
+                  '- [ ] .github/workflows/ directory created', 
+                  '- [ ] spec-kit/ directory organized',
+                  '- [ ] .env.example with all required variables',
+                  '',
+                  '### Files to Create',
+                  '- pyproject.toml',
+                  '- src/av_studio/__init__.py',
+                  '- src/av_studio/py.typed',
+                  '- .env.example',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'INFRA-002',
@@ -185,43 +151,32 @@ src/av_studio/api/__init__.py
                 phase: '1',
                 priority: 'P0-critical',
                 type: 'type:infra',
-                estimate: 4,
-                dependencies: ['INFRA-001'],
-                body: `## Task: INFRA-002 - Configure CI/CD pipelines
-
-**Phase:** 1 - Foundation | **Priority:** P0-critical | **Estimate:** 4 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Set up GitHub Actions workflows for automated testing, linting, type checking, and security scanning.
-
-### Acceptance Criteria
-- [ ] Lint workflow (ruff) runs on all PRs
-- [ ] Test workflow (pytest) runs on all PRs
-- [ ] Type check workflow (mypy) runs on all PRs
-- [ ] Security scan workflow (bandit, safety) runs on all PRs
-- [ ] All workflows block merge on failure
-
-### Files to Create
-\`\`\`yaml
-.github/workflows/lint.yml
-.github/workflows/test.yml  
-.github/workflows/typecheck.yml
-.github/workflows/security.yml
-\`\`\`
-
-### Workflow Requirements
-- Use Python 3.12
-- Cache pip dependencies
-- Run on ubuntu-latest
-- Trigger on: push to dev/main, PR to dev/main
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: INFRA-002 - Configure CI/CD pipelines',
+                  '',
+                  '**Phase:** 1 - Foundation | **Priority:** P0-critical | **Estimate:** 4 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Description',
+                  'Set up GitHub Actions workflows for CI/CD.',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Lint workflow (ruff) on PR',
+                  '- [ ] Test workflow (pytest) on PR',
+                  '- [ ] Type check workflow (mypy) on PR',
+                  '- [ ] Security scan workflow',
+                  '',
+                  '### Files to Create',
+                  '- .github/workflows/lint.yml',
+                  '- .github/workflows/test.yml',
+                  '- .github/workflows/typecheck.yml',
+                  '- .github/workflows/security.yml',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'INFRA-003',
@@ -229,36 +184,28 @@ Set up GitHub Actions workflows for automated testing, linting, type checking, a
                 phase: '1',
                 priority: 'P1-high',
                 type: 'type:infra',
-                estimate: 2,
-                dependencies: ['INFRA-001'],
-                body: `## Task: INFRA-003 - Setup development environment scripts
-
-**Phase:** 1 - Foundation | **Priority:** P1-high | **Estimate:** 2 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Create setup scripts for local development environment initialization.
-
-### Acceptance Criteria
-- [ ] setup.sh installs all Python dependencies
-- [ ] Creates required local directories (~/.av-studio/)
-- [ ] Downloads default MLX models
-- [ ] Verifies MPS GPU availability
-- [ ] Provides clear success/failure output
-
-### Files to Create
-\`\`\`
-scripts/setup.sh
-scripts/verify_gpu.py
-scripts/download_models.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: INFRA-003 - Setup development environment scripts',
+                  '',
+                  '**Phase:** 1 - Foundation | **Priority:** P1-high | **Estimate:** 2 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] setup.sh installs all dependencies',
+                  '- [ ] Creates required directories',
+                  '- [ ] Downloads default MLX models',
+                  '- [ ] Verifies GPU availability',
+                  '',
+                  '### Files to Create',
+                  '- scripts/setup.sh',
+                  '- scripts/verify_gpu.py',
+                  '- scripts/download_models.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'CFG-001',
@@ -266,51 +213,31 @@ scripts/download_models.py
                 phase: '1',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 3,
-                dependencies: ['INFRA-001'],
-                body: `## Task: CFG-001 - Implement settings module with Pydantic
-
-**Phase:** 1 - Foundation | **Priority:** P0-critical | **Estimate:** 3 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Create a centralized configuration system using Pydantic Settings for type-safe configuration management.
-
-### Acceptance Criteria
-- [ ] All settings defined with types and defaults
-- [ ] Environment variable loading works (.env support)
-- [ ] Validation for paths, URLs, numeric limits
-- [ ] Settings singleton accessible globally
-- [ ] Separate configs for: app, LLM, processing, external APIs
-
-### Files to Create
-\`\`\`
-src/av_studio/config/__init__.py
-src/av_studio/config/settings.py
-\`\`\`
-
-### Technical Specification
-Reference implementation in: \`av_studio_config_settings.py\`
-
-Key settings to include:
-- Application paths (base_dir, media_dir, models_dir, cache_dir)
-- Ollama configuration (base_url, default_model)
-- MLX configuration (default_model, max_tokens)
-- External API keys (OpenAI, Anthropic, Google, ElevenLabs)
-- Processing settings (use_mps, use_mlx, max_concurrent_jobs)
-- Router defaults (cost_threshold, latency_threshold)
-
-### Tests Required
-\`\`\`
-tests/config/test_settings.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: CFG-001 - Implement settings module with Pydantic',
+                  '',
+                  '**Phase:** 1 - Foundation | **Priority:** P0-critical | **Estimate:** 3 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] All settings defined with types and defaults',
+                  '- [ ] Environment variable loading works',
+                  '- [ ] Validation for paths, URLs, limits',
+                  '- [ ] Settings singleton accessible globally',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/config/__init__.py',
+                  '- src/av_studio/config/settings.py',
+                  '- tests/config/test_settings.py',
+                  '',
+                  '### Reference',
+                  'See: av_studio_config_settings.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'CFG-002',
@@ -318,48 +245,27 @@ tests/config/test_settings.py
                 phase: '1',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 2,
-                dependencies: ['CFG-001'],
-                body: `## Task: CFG-002 - Create model configuration registry
-
-**Phase:** 1 - Foundation | **Priority:** P0-critical | **Estimate:** 2 hours  
-**Dependencies:** CFG-001
-
----
-
-### Description
-Create a YAML-based model configuration system that defines available LLM models, their capabilities, and routing metadata.
-
-### Acceptance Criteria
-- [ ] YAML-based model definitions
-- [ ] Model capabilities defined (supported tasks, context length, pricing)
-- [ ] Runtime model registry with fast lookup
-- [ ] Support for local (MLX, Ollama) and external (OpenAI, Claude, Gemini) models
-
-### Files to Create
-\`\`\`
-config/models.yaml
-src/av_studio/config/models.py
-tests/config/test_models.py
-\`\`\`
-
-### Model Registry Fields
-\`\`\`yaml
-models:
-  ollama-llama3.2:
-    provider: ollama
-    model_id: llama3.2:8b
-    supports: [chat, code, summarization]
-    max_context: 128000
-    cost_per_1k_input: 0.0
-    cost_per_1k_output: 0.0
-    is_local: true
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: CFG-002 - Create model configuration registry',
+                  '',
+                  '**Phase:** 1 - Foundation | **Priority:** P0-critical | **Estimate:** 2 hours',
+                  '**Dependencies:** CFG-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] YAML-based model definitions',
+                  '- [ ] Model capabilities defined',
+                  '- [ ] Runtime model registry with lookup',
+                  '',
+                  '### Files to Create',
+                  '- config/models.yaml',
+                  '- src/av_studio/config/models.py',
+                  '- tests/config/test_models.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'CFG-003',
@@ -367,76 +273,58 @@ models:
                 phase: '1',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 1,
-                dependencies: ['CFG-001'],
-                body: `## Task: CFG-003 - Implement pricing configuration
-
-**Phase:** 1 - Foundation | **Priority:** P1-high | **Estimate:** 1 hour  
-**Dependencies:** CFG-001
-
----
-
-### Description
-Create YAML-based pricing configuration for LLM API cost tracking.
-
-### Acceptance Criteria
-- [ ] YAML-based pricing definitions
-- [ ] Per-model input/output token rates
-- [ ] Easy to update when API prices change
-- [ ] Support for tiered pricing
-
-### Files to Create
-\`\`\`
-config/pricing.yaml
-src/av_studio/config/pricing.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: CFG-003 - Implement pricing configuration',
+                  '',
+                  '**Phase:** 1 - Foundation | **Priority:** P1-high | **Estimate:** 1 hour',
+                  '**Dependencies:** CFG-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] YAML-based pricing definitions',
+                  '- [ ] Per-model input/output token rates',
+                  '- [ ] Easy to update when prices change',
+                  '',
+                  '### Files to Create',
+                  '- config/pricing.yaml',
+                  '- src/av_studio/config/pricing.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
-
-              // ==================== PHASE 2: GATEWAY LAYER ====================
               {
                 id: 'GW-001',
                 title: '[GW-001] Implement token analyzer',
                 phase: '2',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['CFG-002'],
-                body: `## Task: GW-001 - Implement token analyzer
-
-**Phase:** 2 - Gateway | **Priority:** P0-critical | **Estimate:** 4 hours  
-**Dependencies:** CFG-002
-
----
-
-### Description
-Create a token counting system that accurately estimates token usage for various LLM providers.
-
-### Acceptance Criteria
-- [ ] Tiktoken integration for OpenAI/GPT models
-- [ ] Llama tokenizer for local models
-- [ ] Accurate count within 5% of actual usage
-- [ ] Support for chat message format (role + content)
-- [ ] Caching for repeated tokenization
-
-### Files to Create
-\`\`\`
-src/av_studio/gateway/__init__.py
-src/av_studio/gateway/token_analyzer.py
-tests/gateway/test_token_analyzer.py
-\`\`\`
-
-### Reference Implementation
-See: \`av_studio_src_gateway_token_analyzer.py\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: GW-001 - Implement token analyzer',
+                  '',
+                  '**Phase:** 2 - Gateway | **Priority:** P0-critical | **Estimate:** 4 hours',
+                  '**Dependencies:** CFG-002',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Tiktoken integration for OpenAI models',
+                  '- [ ] Llama tokenizer for local models',
+                  '- [ ] Accurate count within 5% of actual',
+                  '- [ ] Support for chat message format',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/gateway/__init__.py',
+                  '- src/av_studio/gateway/token_analyzer.py',
+                  '- tests/gateway/test_token_analyzer.py',
+                  '',
+                  '### Reference',
+                  'See: av_studio_src_gateway_token_analyzer.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'GW-002',
@@ -444,35 +332,27 @@ See: \`av_studio_src_gateway_token_analyzer.py\`
                 phase: '2',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 3,
-                dependencies: ['GW-001', 'CFG-003'],
-                body: `## Task: GW-002 - Implement cost calculator
-
-**Phase:** 2 - Gateway | **Priority:** P0-critical | **Estimate:** 3 hours  
-**Dependencies:** GW-001, CFG-003
-
----
-
-### Description
-Create a cost calculation and tracking system for LLM API usage.
-
-### Acceptance Criteria
-- [ ] Accurate cost estimation before request
-- [ ] Running total tracking across session
-- [ ] Budget limit enforcement with alerts
-- [ ] Cost summary reporting (by model, by time period)
-- [ ] Support for daily/monthly budget limits
-
-### Files to Create
-\`\`\`
-src/av_studio/gateway/cost_calculator.py
-tests/gateway/test_cost_calculator.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: GW-002 - Implement cost calculator',
+                  '',
+                  '**Phase:** 2 - Gateway | **Priority:** P0-critical | **Estimate:** 3 hours',
+                  '**Dependencies:** GW-001, CFG-003',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Accurate cost estimation before request',
+                  '- [ ] Running total tracking',
+                  '- [ ] Budget limit enforcement',
+                  '- [ ] Cost summary reporting',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/gateway/cost_calculator.py',
+                  '- tests/gateway/test_cost_calculator.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'GW-003',
@@ -480,41 +360,31 @@ tests/gateway/test_cost_calculator.py
                 phase: '2',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 6,
-                dependencies: ['GW-001', 'GW-002', 'CFG-002'],
-                body: `## Task: GW-003 - Implement smart router
-
-**Phase:** 2 - Gateway | **Priority:** P0-critical | **Estimate:** 6 hours  
-**Dependencies:** GW-001, GW-002, CFG-002
-
----
-
-### Description
-Create an intelligent routing system that selects the optimal LLM based on task type, cost constraints, latency requirements, and quality needs.
-
-### Acceptance Criteria
-- [ ] Routes based on task type (chat, code, creative, etc.)
-- [ ] Respects cost constraints and budget limits
-- [ ] Considers latency requirements
-- [ ] Quality scoring for model selection
-- [ ] Local-first preference honored
-- [ ] Fallback chain when primary unavailable
-- [ ] Latency tracking and adaptive routing
-- [ ] All routing decisions logged
-
-### Files to Create
-\`\`\`
-src/av_studio/gateway/router.py
-tests/gateway/test_router.py
-\`\`\`
-
-### Reference Implementation
-See: \`av_studio_src_gateway_router.py\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: GW-003 - Implement smart router',
+                  '',
+                  '**Phase:** 2 - Gateway | **Priority:** P0-critical | **Estimate:** 6 hours',
+                  '**Dependencies:** GW-001, GW-002, CFG-002',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Routes based on task type, cost, latency, quality',
+                  '- [ ] Local-first preference honored',
+                  '- [ ] Fallback chain works',
+                  '- [ ] Latency tracking and adaptation',
+                  '- [ ] Routing decisions logged',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/gateway/router.py',
+                  '- tests/gateway/test_router.py',
+                  '',
+                  '### Reference',
+                  'See: av_studio_src_gateway_router.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'GW-004',
@@ -522,35 +392,27 @@ See: \`av_studio_src_gateway_router.py\`
                 phase: '2',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 3,
-                dependencies: ['INFRA-001'],
-                body: `## Task: GW-004 - Implement authentication middleware
-
-**Phase:** 2 - Gateway | **Priority:** P1-high | **Estimate:** 3 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Create authentication middleware for the API gateway.
-
-### Acceptance Criteria
-- [ ] API key validation
-- [ ] JWT token support for sessions
-- [ ] Rate limiting per API key
-- [ ] Proper 401/403 responses
-- [ ] Secure key storage (environment variables)
-
-### Files to Create
-\`\`\`
-src/av_studio/gateway/auth.py
-tests/gateway/test_auth.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: GW-004 - Implement authentication middleware',
+                  '',
+                  '**Phase:** 2 - Gateway | **Priority:** P1-high | **Estimate:** 3 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] API key validation',
+                  '- [ ] JWT token support',
+                  '- [ ] Rate limiting per key',
+                  '- [ ] Unauthorized rejection',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/gateway/auth.py',
+                  '- tests/gateway/test_auth.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'GW-005',
@@ -558,82 +420,59 @@ tests/gateway/test_auth.py
                 phase: '2',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 2,
-                dependencies: ['GW-004'],
-                body: `## Task: GW-005 - Implement rate limiter
-
-**Phase:** 2 - Gateway | **Priority:** P1-high | **Estimate:** 2 hours  
-**Dependencies:** GW-004
-
----
-
-### Description
-Create a rate limiting system for API endpoints.
-
-### Acceptance Criteria
-- [ ] Configurable limits per endpoint
-- [ ] Token bucket algorithm implementation
-- [ ] Returns 429 with Retry-After header
-- [ ] Per-client tracking
-
-### Files to Create
-\`\`\`
-src/av_studio/gateway/rate_limiter.py
-tests/gateway/test_rate_limiter.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: GW-005 - Implement rate limiter',
+                  '',
+                  '**Phase:** 2 - Gateway | **Priority:** P1-high | **Estimate:** 2 hours',
+                  '**Dependencies:** GW-004',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Configurable limits per endpoint',
+                  '- [ ] Token bucket algorithm',
+                  '- [ ] Returns 429 with retry-after',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/gateway/rate_limiter.py',
+                  '- tests/gateway/test_rate_limiter.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
-
-              // ==================== PHASE 3: LLM INTEGRATION ====================
               {
                 id: 'LLM-001',
                 title: '[LLM-001] Implement MLX client',
                 phase: '3',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 6,
-                dependencies: ['CFG-001'],
-                body: `## Task: LLM-001 - Implement MLX client
-
-**Phase:** 3 - LLM Integration | **Priority:** P0-critical | **Estimate:** 6 hours  
-**Dependencies:** CFG-001
-
----
-
-### Description
-Create a high-performance LLM client using Apple's MLX framework, optimized for M4 Max.
-
-### Acceptance Criteria
-- [ ] Load MLX models from HuggingFace
-- [ ] Generate completions with <50ms first-token latency
-- [ ] Streaming token generation support
-- [ ] Memory management (unload models when switching)
-- [ ] Proper prompt formatting for chat (Llama-style)
-- [ ] Model info and status reporting
-
-### Files to Create
-\`\`\`
-src/av_studio/llm/__init__.py
-src/av_studio/llm/mlx_client.py
-tests/llm/test_mlx_client.py
-\`\`\`
-
-### Reference Implementation
-See: \`av_studio_src_llm_mlx_client.py\`
-
-### Recommended Models
-- Fast: mlx-community/Llama-3.2-3B-Instruct-4bit
-- Balanced: mlx-community/Llama-3.2-8B-Instruct-4bit
-- Code: mlx-community/Qwen2.5-Coder-7B-Instruct-4bit
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: LLM-001 - Implement MLX client',
+                  '',
+                  '**Phase:** 3 - LLM Integration | **Priority:** P0-critical | **Estimate:** 6 hours',
+                  '**Dependencies:** CFG-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Load MLX models from HuggingFace',
+                  '- [ ] Generate completions with <50ms first token',
+                  '- [ ] Streaming support',
+                  '- [ ] Memory management',
+                  '- [ ] Proper prompt formatting for chat',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/llm/__init__.py',
+                  '- src/av_studio/llm/mlx_client.py',
+                  '- tests/llm/test_mlx_client.py',
+                  '',
+                  '### Reference',
+                  'See: av_studio_src_llm_mlx_client.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'LLM-002',
@@ -641,35 +480,28 @@ See: \`av_studio_src_llm_mlx_client.py\`
                 phase: '3',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 3,
-                dependencies: ['CFG-001'],
-                body: `## Task: LLM-002 - Implement Ollama client
-
-**Phase:** 3 - LLM Integration | **Priority:** P0-critical | **Estimate:** 3 hours  
-**Dependencies:** CFG-001
-
----
-
-### Description
-Create an Ollama client for local LLM inference as an alternative/fallback to MLX.
-
-### Acceptance Criteria
-- [ ] Connect to local Ollama server
-- [ ] List available models
-- [ ] Chat completions API
-- [ ] Streaming support
-- [ ] Error handling for server unavailable
-
-### Files to Create
-\`\`\`
-src/av_studio/llm/ollama_client.py
-tests/llm/test_ollama_client.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: LLM-002 - Implement Ollama client',
+                  '',
+                  '**Phase:** 3 - LLM Integration | **Priority:** P0-critical | **Estimate:** 3 hours',
+                  '**Dependencies:** CFG-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Connect to local Ollama server',
+                  '- [ ] List available models',
+                  '- [ ] Chat completions',
+                  '- [ ] Streaming support',
+                  '- [ ] Error handling for server down',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/llm/ollama_client.py',
+                  '- tests/llm/test_ollama_client.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'LLM-003',
@@ -677,36 +509,28 @@ tests/llm/test_ollama_client.py
                 phase: '3',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['CFG-001', 'GW-002'],
-                body: `## Task: LLM-003 - Implement external API clients
-
-**Phase:** 3 - LLM Integration | **Priority:** P0-critical | **Estimate:** 4 hours  
-**Dependencies:** CFG-001, GW-002
-
----
-
-### Description
-Create clients for external LLM APIs (OpenAI, Anthropic, Google).
-
-### Acceptance Criteria
-- [ ] OpenAI client with GPT-4o, GPT-4o-mini support
-- [ ] Anthropic client with Claude 3.5 Sonnet/Haiku
-- [ ] Google client with Gemini 2.0 Flash/Pro
-- [ ] Unified interface across providers
-- [ ] Cost tracking integration
-- [ ] Streaming support for all
-
-### Files to Create
-\`\`\`
-src/av_studio/llm/external_clients.py
-tests/llm/test_external_clients.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: LLM-003 - Implement external API clients',
+                  '',
+                  '**Phase:** 3 - LLM Integration | **Priority:** P0-critical | **Estimate:** 4 hours',
+                  '**Dependencies:** CFG-001, GW-002',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] OpenAI client with all models',
+                  '- [ ] Anthropic client with all models',
+                  '- [ ] Google/Gemini client',
+                  '- [ ] Unified interface',
+                  '- [ ] Cost tracking integration',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/llm/external_clients.py',
+                  '- tests/llm/test_external_clients.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'LLM-004',
@@ -714,79 +538,61 @@ tests/llm/test_external_clients.py
                 phase: '3',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 3,
-                dependencies: ['LLM-001', 'LLM-002', 'LLM-003', 'GW-003'],
-                body: `## Task: LLM-004 - Implement unified LLM interface
-
-**Phase:** 3 - LLM Integration | **Priority:** P0-critical | **Estimate:** 3 hours  
-**Dependencies:** LLM-001, LLM-002, LLM-003, GW-003
-
----
-
-### Description
-Create a unified interface that abstracts all LLM backends and integrates with the smart router.
-
-### Acceptance Criteria
-- [ ] Single interface for all LLM backends
-- [ ] Automatic routing via smart router
-- [ ] Consistent response format across providers
-- [ ] Error handling and automatic retries
-- [ ] Fallback to local models on external failure
-
-### Files to Create
-\`\`\`
-src/av_studio/llm/unified.py
-tests/llm/test_unified.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: LLM-004 - Implement unified LLM interface',
+                  '',
+                  '**Phase:** 3 - LLM Integration | **Priority:** P0-critical | **Estimate:** 3 hours',
+                  '**Dependencies:** LLM-001, LLM-002, LLM-003, GW-003',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Single interface for all LLM backends',
+                  '- [ ] Automatic routing via smart router',
+                  '- [ ] Consistent response format',
+                  '- [ ] Error handling and retries',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/llm/unified.py',
+                  '- tests/llm/test_unified.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
-
-              // ==================== PHASE 4: AUDIO PROCESSING ====================
               {
                 id: 'AUD-001',
                 title: '[AUD-001] Implement Demucs stem separation',
                 phase: '4',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 6,
-                dependencies: ['INFRA-001'],
-                body: `## Task: AUD-001 - Implement Demucs stem separation
-
-**Phase:** 4 - Audio Processing | **Priority:** P0-critical | **Estimate:** 6 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Implement audio stem separation using Demucs with MPS GPU acceleration.
-
-### Acceptance Criteria
-- [ ] Separate audio into: vocals, drums, bass, other
-- [ ] MPS (Metal) GPU acceleration working
-- [ ] Support htdemucs, htdemucs_ft, mdx_extra models
-- [ ] Progress callback for UI updates
-- [ ] Output to configured directory structure
-- [ ] <30 seconds for 3-minute song on M4 Max
-
-### Files to Create
-\`\`\`
-src/av_studio/processing/__init__.py
-src/av_studio/processing/audio/__init__.py
-src/av_studio/processing/audio/demucs_processor.py
-tests/processing/audio/test_demucs.py
-\`\`\`
-
-### Reference Implementation
-See: \`av_studio_src_processing_audio_pipeline.py\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AUD-001 - Implement Demucs stem separation',
+                  '',
+                  '**Phase:** 4 - Audio Processing | **Priority:** P0-critical | **Estimate:** 6 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Separate into vocals, drums, bass, other',
+                  '- [ ] MPS GPU acceleration working',
+                  '- [ ] Support htdemucs, htdemucs_ft, mdx_extra models',
+                  '- [ ] Progress callback for UI updates',
+                  '- [ ] Output to configured directory',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/processing/__init__.py',
+                  '- src/av_studio/processing/audio/__init__.py',
+                  '- src/av_studio/processing/audio/demucs_processor.py',
+                  '- tests/processing/audio/test_demucs.py',
+                  '',
+                  '### Reference',
+                  'See: av_studio_src_processing_audio_pipeline.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'AUD-002',
@@ -794,36 +600,27 @@ See: \`av_studio_src_processing_audio_pipeline.py\`
                 phase: '4',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['INFRA-001'],
-                body: `## Task: AUD-002 - Implement Whisper transcription
-
-**Phase:** 4 - Audio Processing | **Priority:** P0-critical | **Estimate:** 4 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Implement audio transcription using faster-whisper.
-
-### Acceptance Criteria
-- [ ] Transcribe audio with word-level timestamps
-- [ ] Support all Whisper model sizes (tiny → large-v3)
-- [ ] Language detection or manual specification
-- [ ] VAD filtering for improved accuracy
-- [ ] >95% accuracy on clear speech
-- [ ] <10 seconds for 1-minute audio
-
-### Files to Create
-\`\`\`
-src/av_studio/processing/audio/whisper_processor.py
-tests/processing/audio/test_whisper.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AUD-002 - Implement Whisper transcription',
+                  '',
+                  '**Phase:** 4 - Audio Processing | **Priority:** P0-critical | **Estimate:** 4 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Transcribe audio with timestamps',
+                  '- [ ] Support all Whisper model sizes',
+                  '- [ ] Language detection or specification',
+                  '- [ ] VAD filtering for better accuracy',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/processing/audio/whisper_processor.py',
+                  '- tests/processing/audio/test_whisper.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'AUD-003',
@@ -831,35 +628,27 @@ tests/processing/audio/test_whisper.py
                 phase: '4',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['INFRA-001'],
-                body: `## Task: AUD-003 - Implement audio effects pipeline
-
-**Phase:** 4 - Audio Processing | **Priority:** P1-high | **Estimate:** 4 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Implement audio effects processing using Pedalboard.
-
-### Acceptance Criteria
-- [ ] Pedalboard integration
-- [ ] Effects: reverb, compression, EQ, gain, filters
-- [ ] Effect chain composition
-- [ ] Preset system for common setups
-- [ ] Real-time preview capability
-
-### Files to Create
-\`\`\`
-src/av_studio/processing/audio/effects.py
-tests/processing/audio/test_effects.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AUD-003 - Implement audio effects pipeline',
+                  '',
+                  '**Phase:** 4 - Audio Processing | **Priority:** P1-high | **Estimate:** 4 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Pedalboard integration',
+                  '- [ ] Reverb, compression, EQ, gain effects',
+                  '- [ ] Effect chain composition',
+                  '- [ ] Preset system',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/processing/audio/effects.py',
+                  '- tests/processing/audio/test_effects.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'AUD-004',
@@ -867,34 +656,27 @@ tests/processing/audio/test_effects.py
                 phase: '4',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 2,
-                dependencies: ['INFRA-001'],
-                body: `## Task: AUD-004 - Implement loudness normalization
-
-**Phase:** 4 - Audio Processing | **Priority:** P1-high | **Estimate:** 2 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Implement LUFS-based loudness normalization for streaming platforms.
-
-### Acceptance Criteria
-- [ ] Measure current LUFS loudness
-- [ ] Normalize to configurable target LUFS (-14 default for streaming)
-- [ ] True peak limiting
-- [ ] Platform presets (Spotify, YouTube, Apple Music)
-
-### Files to Create
-\`\`\`
-src/av_studio/processing/audio/normalization.py
-tests/processing/audio/test_normalization.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AUD-004 - Implement loudness normalization',
+                  '',
+                  '**Phase:** 4 - Audio Processing | **Priority:** P1-high | **Estimate:** 2 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Measure current LUFS',
+                  '- [ ] Normalize to target LUFS',
+                  '- [ ] True peak limiting',
+                  '- [ ] Streaming platform presets',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/processing/audio/normalization.py',
+                  '- tests/processing/audio/test_normalization.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'AUD-005',
@@ -902,34 +684,26 @@ tests/processing/audio/test_normalization.py
                 phase: '4',
                 priority: 'P2-medium',
                 type: 'type:feature',
-                estimate: 2,
-                dependencies: ['INFRA-001'],
-                body: `## Task: AUD-005 - Implement audio format conversion
-
-**Phase:** 4 - Audio Processing | **Priority:** P2-medium | **Estimate:** 2 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Implement audio format conversion between common formats.
-
-### Acceptance Criteria
-- [ ] Support: WAV, MP3, FLAC, AAC, OGG
-- [ ] Quality presets (lossless, high, medium, low)
-- [ ] Metadata preservation
-- [ ] Batch conversion support
-
-### Files to Create
-\`\`\`
-src/av_studio/processing/audio/converter.py
-tests/processing/audio/test_converter.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AUD-005 - Implement audio format conversion',
+                  '',
+                  '**Phase:** 4 - Audio Processing | **Priority:** P2-medium | **Estimate:** 2 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Support WAV, MP3, FLAC, AAC, OGG',
+                  '- [ ] Quality presets',
+                  '- [ ] Metadata preservation',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/processing/audio/converter.py',
+                  '- tests/processing/audio/test_converter.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'AUD-006',
@@ -937,78 +711,60 @@ tests/processing/audio/test_converter.py
                 phase: '4',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 3,
-                dependencies: ['AUD-001', 'AUD-002', 'AUD-003', 'AUD-004', 'AUD-005'],
-                body: `## Task: AUD-006 - Implement unified audio pipeline
-
-**Phase:** 4 - Audio Processing | **Priority:** P0-critical | **Estimate:** 3 hours  
-**Dependencies:** AUD-001 through AUD-005
-
----
-
-### Description
-Create a unified audio processing pipeline that orchestrates all audio operations.
-
-### Acceptance Criteria
-- [ ] Single entry point for all audio operations
-- [ ] Batch processing support with configurable parallelism
-- [ ] GPU memory management (load/unload models)
-- [ ] Progress tracking and callbacks
-- [ ] Error handling and recovery
-
-### Files to Create
-\`\`\`
-src/av_studio/processing/audio/pipeline.py
-tests/processing/audio/test_pipeline.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AUD-006 - Implement unified audio pipeline',
+                  '',
+                  '**Phase:** 4 - Audio Processing | **Priority:** P0-critical | **Estimate:** 3 hours',
+                  '**Dependencies:** AUD-001 through AUD-005',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Single entry point for all audio operations',
+                  '- [ ] Batch processing support',
+                  '- [ ] Resource management (GPU memory)',
+                  '- [ ] Progress tracking',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/processing/audio/pipeline.py',
+                  '- tests/processing/audio/test_pipeline.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
-
-              // ==================== PHASE 5: AGENT SYSTEM ====================
               {
                 id: 'AGT-001',
                 title: '[AGT-001] Implement base agent class',
                 phase: '5',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['LLM-004'],
-                body: `## Task: AGT-001 - Implement base agent class
-
-**Phase:** 5 - Agent System | **Priority:** P0-critical | **Estimate:** 4 hours  
-**Dependencies:** LLM-004
-
----
-
-### Description
-Create the base agent class that all specialized agents inherit from.
-
-### Acceptance Criteria
-- [ ] Abstract base with common functionality
-- [ ] System prompt management
-- [ ] Tool use capability (MCP integration ready)
-- [ ] Memory/context management
-- [ ] Logging and observability
-- [ ] Async execution support
-
-### Files to Create
-\`\`\`
-src/av_studio/agents/__init__.py
-src/av_studio/agents/base_agent.py
-tests/agents/test_base_agent.py
-\`\`\`
-
-### Reference Implementation
-See: \`av_studio_src_agents_orchestrator.py\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AGT-001 - Implement base agent class',
+                  '',
+                  '**Phase:** 5 - Agent System | **Priority:** P0-critical | **Estimate:** 4 hours',
+                  '**Dependencies:** LLM-004',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Abstract base with common functionality',
+                  '- [ ] System prompt management',
+                  '- [ ] Tool use capability',
+                  '- [ ] Memory/context management',
+                  '- [ ] Logging and observability',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/agents/__init__.py',
+                  '- src/av_studio/agents/base_agent.py',
+                  '- tests/agents/test_base_agent.py',
+                  '',
+                  '### Reference',
+                  'See: av_studio_src_agents_orchestrator.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'AGT-002',
@@ -1016,36 +772,28 @@ See: \`av_studio_src_agents_orchestrator.py\`
                 phase: '5',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 8,
-                dependencies: ['AGT-001'],
-                body: `## Task: AGT-002 - Implement orchestrator agent
-
-**Phase:** 5 - Agent System | **Priority:** P0-critical | **Estimate:** 8 hours  
-**Dependencies:** AGT-001
-
----
-
-### Description
-Create the main orchestrator agent that coordinates all specialized agents.
-
-### Acceptance Criteria
-- [ ] Task decomposition from user requests
-- [ ] Agent routing and assignment
-- [ ] State machine for task lifecycle
-- [ ] Result synthesis from multiple agents
-- [ ] Error handling and recovery
-- [ ] Multi-agent conversation support
-
-### Files to Create
-\`\`\`
-src/av_studio/agents/orchestrator.py
-tests/agents/test_orchestrator.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AGT-002 - Implement orchestrator agent',
+                  '',
+                  '**Phase:** 5 - Agent System | **Priority:** P0-critical | **Estimate:** 8 hours',
+                  '**Dependencies:** AGT-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Task decomposition',
+                  '- [ ] Agent routing/assignment',
+                  '- [ ] State machine for task lifecycle',
+                  '- [ ] Result synthesis',
+                  '- [ ] Error handling and recovery',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/agents/orchestrator.py',
+                  '- tests/agents/test_orchestrator.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'AGT-003',
@@ -1053,35 +801,27 @@ tests/agents/test_orchestrator.py
                 phase: '5',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['AGT-001', 'AUD-006'],
-                body: `## Task: AGT-003 - Implement audio agent
-
-**Phase:** 5 - Agent System | **Priority:** P0-critical | **Estimate:** 4 hours  
-**Dependencies:** AGT-001, AUD-006
-
----
-
-### Description
-Create a specialized agent for audio processing tasks.
-
-### Acceptance Criteria
-- [ ] Understands audio processing requests in natural language
-- [ ] Maps requests to audio pipeline operations
-- [ ] Handles multi-step audio workflows
-- [ ] Reports progress and status
-- [ ] Can explain its actions
-
-### Files to Create
-\`\`\`
-src/av_studio/agents/audio_agent.py
-tests/agents/test_audio_agent.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AGT-003 - Implement audio agent',
+                  '',
+                  '**Phase:** 5 - Agent System | **Priority:** P0-critical | **Estimate:** 4 hours',
+                  '**Dependencies:** AGT-001, AUD-006',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Understands audio processing requests',
+                  '- [ ] Maps requests to pipeline operations',
+                  '- [ ] Handles multi-step workflows',
+                  '- [ ] Reports progress',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/agents/audio_agent.py',
+                  '- tests/agents/test_audio_agent.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'AGT-004',
@@ -1089,34 +829,26 @@ tests/agents/test_audio_agent.py
                 phase: '5',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['AGT-001'],
-                body: `## Task: AGT-004 - Implement video agent
-
-**Phase:** 5 - Agent System | **Priority:** P1-high | **Estimate:** 4 hours  
-**Dependencies:** AGT-001
-
----
-
-### Description
-Create a specialized agent for video processing tasks.
-
-### Acceptance Criteria
-- [ ] Understands video processing requests
-- [ ] Frame extraction and scene detection
-- [ ] Audio extraction coordination with audio agent
-- [ ] Progress reporting
-
-### Files to Create
-\`\`\`
-src/av_studio/agents/video_agent.py
-tests/agents/test_video_agent.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AGT-004 - Implement video agent',
+                  '',
+                  '**Phase:** 5 - Agent System | **Priority:** P1-high | **Estimate:** 4 hours',
+                  '**Dependencies:** AGT-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Understands video processing requests',
+                  '- [ ] Frame extraction, scene detection',
+                  '- [ ] Audio extraction coordination',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/agents/video_agent.py',
+                  '- tests/agents/test_video_agent.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'AGT-005',
@@ -1124,77 +856,57 @@ tests/agents/test_video_agent.py
                 phase: '5',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['AGT-001'],
-                body: `## Task: AGT-005 - Implement agent memory system
-
-**Phase:** 5 - Agent System | **Priority:** P1-high | **Estimate:** 4 hours  
-**Dependencies:** AGT-001
-
----
-
-### Description
-Create a memory system for agents to maintain context across conversations and tasks.
-
-### Acceptance Criteria
-- [ ] Short-term conversation memory
-- [ ] Long-term vector memory using ChromaDB
-- [ ] Semantic memory retrieval for context
-- [ ] Memory pruning and summarization
-- [ ] Cross-agent memory sharing (controlled)
-
-### Files to Create
-\`\`\`
-src/av_studio/agents/memory.py
-tests/agents/test_memory.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: AGT-005 - Implement agent memory system',
+                  '',
+                  '**Phase:** 5 - Agent System | **Priority:** P1-high | **Estimate:** 4 hours',
+                  '**Dependencies:** AGT-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] Short-term conversation memory',
+                  '- [ ] Long-term vector memory (ChromaDB)',
+                  '- [ ] Memory retrieval for context',
+                  '- [ ] Memory pruning/summarization',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/agents/memory.py',
+                  '- tests/agents/test_memory.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
-
-              // ==================== PHASE 6: API LAYER ====================
               {
                 id: 'API-001',
                 title: '[API-001] Implement FastAPI application core',
                 phase: '6',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 3,
-                dependencies: ['GW-004', 'GW-005'],
-                body: `## Task: API-001 - Implement FastAPI application core
-
-**Phase:** 6 - API Layer | **Priority:** P0-critical | **Estimate:** 3 hours  
-**Dependencies:** GW-004, GW-005
-
----
-
-### Description
-Create the core FastAPI application with middleware, CORS, and error handling.
-
-### Acceptance Criteria
-- [ ] FastAPI app with CORS configuration
-- [ ] Auth middleware integration
-- [ ] Rate limiting middleware
-- [ ] Health check endpoint (/health)
-- [ ] OpenAPI documentation auto-generated
-- [ ] Global error handling
-
-### Files to Create
-\`\`\`
-src/av_studio/api/__init__.py
-src/av_studio/api/main.py
-src/av_studio/api/middleware.py
-src/av_studio/api/exceptions.py
-tests/api/test_main.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: API-001 - Implement FastAPI application core',
+                  '',
+                  '**Phase:** 6 - API Layer | **Priority:** P0-critical | **Estimate:** 3 hours',
+                  '**Dependencies:** GW-004, GW-005',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] FastAPI app with CORS, middleware',
+                  '- [ ] Health check endpoint',
+                  '- [ ] OpenAPI documentation',
+                  '- [ ] Error handling',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/api/__init__.py',
+                  '- src/av_studio/api/main.py',
+                  '- src/av_studio/api/middleware.py',
+                  '- tests/api/test_main.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'API-002',
@@ -1202,38 +914,28 @@ tests/api/test_main.py
                 phase: '6',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['API-001', 'AUD-006'],
-                body: `## Task: API-002 - Implement audio API endpoints
-
-**Phase:** 6 - API Layer | **Priority:** P0-critical | **Estimate:** 4 hours  
-**Dependencies:** API-001, AUD-006
-
----
-
-### Description
-Create REST API endpoints for audio processing operations.
-
-### Acceptance Criteria
-- [ ] POST /api/v1/audio/separate - stem separation
-- [ ] POST /api/v1/audio/transcribe - speech-to-text
-- [ ] POST /api/v1/audio/effects - apply effects
-- [ ] POST /api/v1/audio/normalize - loudness normalization
-- [ ] Async job handling with status polling
-- [ ] File upload support
-
-### Files to Create
-\`\`\`
-src/av_studio/api/routes/__init__.py
-src/av_studio/api/routes/audio.py
-src/av_studio/api/schemas/audio.py
-tests/api/test_audio_routes.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: API-002 - Implement audio API endpoints',
+                  '',
+                  '**Phase:** 6 - API Layer | **Priority:** P0-critical | **Estimate:** 4 hours',
+                  '**Dependencies:** API-001, AUD-006',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] POST /audio/separate',
+                  '- [ ] POST /audio/transcribe',
+                  '- [ ] POST /audio/effects',
+                  '- [ ] POST /audio/normalize',
+                  '- [ ] Async job handling',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/api/routes/audio.py',
+                  '- tests/api/test_audio_routes.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'API-003',
@@ -1241,35 +943,26 @@ tests/api/test_audio_routes.py
                 phase: '6',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 3,
-                dependencies: ['API-001', 'LLM-004'],
-                body: `## Task: API-003 - Implement LLM API endpoints
-
-**Phase:** 6 - API Layer | **Priority:** P0-critical | **Estimate:** 3 hours  
-**Dependencies:** API-001, LLM-004
-
----
-
-### Description
-Create REST API endpoints for LLM interactions.
-
-### Acceptance Criteria
-- [ ] POST /api/v1/llm/chat - chat completion
-- [ ] POST /api/v1/llm/stream - streaming chat (SSE)
-- [ ] GET /api/v1/llm/models - list available models
-- [ ] Integration with smart router
-
-### Files to Create
-\`\`\`
-src/av_studio/api/routes/llm.py
-src/av_studio/api/schemas/llm.py
-tests/api/test_llm_routes.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: API-003 - Implement LLM API endpoints',
+                  '',
+                  '**Phase:** 6 - API Layer | **Priority:** P0-critical | **Estimate:** 3 hours',
+                  '**Dependencies:** API-001, LLM-004',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] POST /llm/chat',
+                  '- [ ] POST /llm/stream (SSE)',
+                  '- [ ] GET /llm/models',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/api/routes/llm.py',
+                  '- tests/api/test_llm_routes.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'API-004',
@@ -1277,35 +970,26 @@ tests/api/test_llm_routes.py
                 phase: '6',
                 priority: 'P0-critical',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['API-001', 'AGT-002'],
-                body: `## Task: API-004 - Implement agent API endpoints
-
-**Phase:** 6 - API Layer | **Priority:** P0-critical | **Estimate:** 4 hours  
-**Dependencies:** API-001, AGT-002
-
----
-
-### Description
-Create REST and WebSocket endpoints for agent interactions.
-
-### Acceptance Criteria
-- [ ] POST /api/v1/agents/task - submit task to orchestrator
-- [ ] GET /api/v1/agents/task/{id} - get task status
-- [ ] WebSocket /api/v1/agents/stream/{id} - real-time updates
-- [ ] Multi-turn conversation support
-
-### Files to Create
-\`\`\`
-src/av_studio/api/routes/agents.py
-src/av_studio/api/schemas/agents.py
-tests/api/test_agent_routes.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: API-004 - Implement agent API endpoints',
+                  '',
+                  '**Phase:** 6 - API Layer | **Priority:** P0-critical | **Estimate:** 4 hours',
+                  '**Dependencies:** API-001, AGT-002',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] POST /agents/task',
+                  '- [ ] GET /agents/task/{id}',
+                  '- [ ] WebSocket /agents/stream/{id}',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/api/routes/agents.py',
+                  '- tests/api/test_agent_routes.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'API-005',
@@ -1313,76 +997,57 @@ tests/api/test_agent_routes.py
                 phase: '6',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 2,
-                dependencies: ['API-001', 'GW-002', 'GW-003'],
-                body: `## Task: API-005 - Implement gateway API endpoints
-
-**Phase:** 6 - API Layer | **Priority:** P1-high | **Estimate:** 2 hours  
-**Dependencies:** API-001, GW-002, GW-003
-
----
-
-### Description
-Create REST API endpoints for gateway features (cost, routing, tokens).
-
-### Acceptance Criteria
-- [ ] GET /api/v1/gateway/cost - get cost summary
-- [ ] POST /api/v1/gateway/analyze-tokens - token analysis
-- [ ] POST /api/v1/gateway/route - get routing recommendation
-
-### Files to Create
-\`\`\`
-src/av_studio/api/routes/gateway.py
-src/av_studio/api/schemas/gateway.py
-tests/api/test_gateway_routes.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: API-005 - Implement gateway API endpoints',
+                  '',
+                  '**Phase:** 6 - API Layer | **Priority:** P1-high | **Estimate:** 2 hours',
+                  '**Dependencies:** API-001, GW-002, GW-003',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] GET /gateway/cost',
+                  '- [ ] POST /gateway/analyze-tokens',
+                  '- [ ] POST /gateway/route',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/api/routes/gateway.py',
+                  '- tests/api/test_gateway_routes.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
-
-              // ==================== PHASE 7: MCP SERVER ====================
               {
                 id: 'MCP-001',
                 title: '[MCP-001] Implement MCP server core',
                 phase: '7',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 4,
-                dependencies: ['INFRA-001'],
-                body: `## Task: MCP-001 - Implement MCP server core
-
-**Phase:** 7 - MCP Server | **Priority:** P1-high | **Estimate:** 4 hours  
-**Dependencies:** INFRA-001
-
----
-
-### Description
-Create the Model Context Protocol server for tool extension.
-
-### Acceptance Criteria
-- [ ] MCP server with stdio transport
-- [ ] Tool registration system
-- [ ] Resource serving capability
-- [ ] Prompt template support
-- [ ] Error handling
-
-### Files to Create
-\`\`\`
-src/av_studio/mcp/__init__.py
-src/av_studio/mcp/server.py
-tests/mcp/test_server.py
-\`\`\`
-
-### Reference Implementation
-See: \`av_studio_src_mcp_server.py\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: MCP-001 - Implement MCP server core',
+                  '',
+                  '**Phase:** 7 - MCP Server | **Priority:** P1-high | **Estimate:** 4 hours',
+                  '**Dependencies:** INFRA-001',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] MCP server with stdio transport',
+                  '- [ ] Tool registration system',
+                  '- [ ] Resource serving',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/mcp/__init__.py',
+                  '- src/av_studio/mcp/server.py',
+                  '- tests/mcp/test_server.py',
+                  '',
+                  '### Reference',
+                  'See: av_studio_src_mcp_server.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'MCP-002',
@@ -1390,37 +1055,26 @@ See: \`av_studio_src_mcp_server.py\`
                 phase: '7',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 3,
-                dependencies: ['MCP-001', 'AUD-006'],
-                body: `## Task: MCP-002 - Implement audio MCP tools
-
-**Phase:** 7 - MCP Server | **Priority:** P1-high | **Estimate:** 3 hours  
-**Dependencies:** MCP-001, AUD-006
-
----
-
-### Description
-Create MCP tools for audio processing operations.
-
-### Acceptance Criteria
-- [ ] separate_stems tool
-- [ ] transcribe_audio tool
-- [ ] apply_effects tool
-- [ ] normalize_loudness tool
-- [ ] Proper input validation
-- [ ] Error handling with helpful messages
-
-### Files to Create
-\`\`\`
-src/av_studio/mcp/tools/__init__.py
-src/av_studio/mcp/tools/audio_tools.py
-tests/mcp/test_audio_tools.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: MCP-002 - Implement audio MCP tools',
+                  '',
+                  '**Phase:** 7 - MCP Server | **Priority:** P1-high | **Estimate:** 3 hours',
+                  '**Dependencies:** MCP-001, AUD-006',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] separate_stems tool',
+                  '- [ ] transcribe_audio tool',
+                  '- [ ] apply_effects tool',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/mcp/tools/audio_tools.py',
+                  '- tests/mcp/test_audio_tools.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               },
               {
                 id: 'MCP-003',
@@ -1428,151 +1082,58 @@ tests/mcp/test_audio_tools.py
                 phase: '7',
                 priority: 'P1-high',
                 type: 'type:feature',
-                estimate: 2,
-                dependencies: ['MCP-001', 'GW-003'],
-                body: `## Task: MCP-003 - Implement gateway MCP tools
-
-**Phase:** 7 - MCP Server | **Priority:** P1-high | **Estimate:** 2 hours  
-**Dependencies:** MCP-001, GW-003
-
----
-
-### Description
-Create MCP tools for gateway operations (cost, routing).
-
-### Acceptance Criteria
-- [ ] analyze_cost tool
-- [ ] route_model tool  
-- [ ] get_cost_summary tool
-
-### Files to Create
-\`\`\`
-src/av_studio/mcp/tools/gateway_tools.py
-tests/mcp/test_gateway_tools.py
-\`\`\`
-
----
-
-**🤖 Agent:** @copilot - Implement on \`dev\` branch  
-**📋 Spec Reference:** [spec-kit_tasks.md](../blob/main/spec-kit_tasks.md)`
+                body: [
+                  '## Task: MCP-003 - Implement gateway MCP tools',
+                  '',
+                  '**Phase:** 7 - MCP Server | **Priority:** P1-high | **Estimate:** 2 hours',
+                  '**Dependencies:** MCP-001, GW-003',
+                  '',
+                  '---',
+                  '',
+                  '### Acceptance Criteria',
+                  '- [ ] analyze_cost tool',
+                  '- [ ] route_model tool',
+                  '',
+                  '### Files to Create',
+                  '- src/av_studio/mcp/tools/gateway_tools.py',
+                  '- tests/mcp/test_gateway_tools.py',
+                  '',
+                  '---',
+                  '**Agent:** @copilot - Implement on dev branch'
+                ].join('\n')
               }
             ];
 
-            // ============================================================
-            // FILTER BY PHASE IF SPECIFIED
-            // ============================================================
+            // Filter by phase
             const tasksToCreate = phase === 'all' 
               ? allTasks 
               : allTasks.filter(t => t.phase === phase);
 
-            console.log(`Creating ${tasksToCreate.length} issues for phase: ${phase}`);
+            console.log('Creating ' + tasksToCreate.length + ' issues for phase: ' + phase);
 
-            // ============================================================
-            // GET PROJECT INFO VIA GRAPHQL
-            // ============================================================
-            const projectQuery = `
-              query($login: String!, $number: Int!) {
-                user(login: $login) {
-                  projectV2(number: $number) {
-                    id
-                    fields(first: 20) {
-                      nodes {
-                        ... on ProjectV2Field {
-                          id
-                          name
-                          dataType
-                        }
-                        ... on ProjectV2SingleSelectField {
-                          id
-                          name
-                          options {
-                            id
-                            name
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            `;
-
-            let projectId, statusField, phaseField, priorityField, agentField;
-            
-            try {
-              const projectData = await github.graphql(projectQuery, {
-                login: process.env.PROJECT_OWNER,
-                number: parseInt(process.env.PROJECT_NUMBER)
-              });
-              
-              projectId = projectData.user.projectV2.id;
-              const fields = projectData.user.projectV2.fields.nodes;
-              
-              statusField = fields.find(f => f.name?.toLowerCase() === 'status');
-              phaseField = fields.find(f => f.name?.toLowerCase() === 'phase');
-              priorityField = fields.find(f => f.name?.toLowerCase() === 'priority');
-              agentField = fields.find(f => f.name?.toLowerCase() === 'agent');
-              
-              console.log('Project ID:', projectId);
-              console.log('Fields found:', { statusField: !!statusField, phaseField: !!phaseField });
-            } catch (e) {
-              console.log('Could not fetch project fields:', e.message);
-              console.log('Issues will be created but not added to project board');
-            }
-
-            // ============================================================
-            // CREATE ISSUES AND ADD TO PROJECT
-            // ============================================================
+            // Create issues
             for (const task of tasksToCreate) {
               try {
-                // Create the issue
+                const phaseName = phaseNames[task.phase] || 'unknown';
+                const labels = [task.priority, task.type, 'phase:' + task.phase + '-' + phaseName, 'agent:coder'];
+                
                 const issue = await github.rest.issues.create({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   title: task.title,
                   body: task.body,
-                  labels: [task.priority, task.type, `phase:${task.phase}-${getPhaseNameByNumber(task.phase)}`, 'agent:coder']
+                  labels: labels
                 });
                 
-                console.log(`✅ Created issue #${issue.data.number}: ${task.title}`);
-
-                // Add to project if we have project info
-                if (projectId) {
-                  try {
-                    const addResult = await github.graphql(`
-                      mutation($projectId: ID!, $contentId: ID!) {
-                        addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
-                          item { id }
-                        }
-                      }
-                    `, {
-                      projectId: projectId,
-                      contentId: issue.data.node_id
-                    });
-                    
-                    console.log(`  📋 Added to project board`);
-                  } catch (pe) {
-                    console.log(`  ⚠️ Could not add to project: ${pe.message}`);
-                  }
-                }
+                console.log('Created issue #' + issue.data.number + ': ' + task.title);
                 
                 // Small delay to avoid rate limiting
-                await new Promise(r => setTimeout(r, 500));
+                await new Promise(r => setTimeout(r, 300));
                 
               } catch (e) {
-                console.error(`❌ Failed to create ${task.id}: ${e.message}`);
+                console.error('Failed to create ' + task.id + ': ' + e.message);
               }
             }
             
-            function getPhaseNameByNumber(num) {
-              const names = {
-                '1': 'foundation',
-                '2': 'gateway', 
-                '3': 'llm',
-                '4': 'audio',
-                '5': 'agents',
-                '6': 'api',
-                '7': 'mcp'
-              };
-              return names[num] || 'unknown';
-            }
+            console.log('Done!');
+            
