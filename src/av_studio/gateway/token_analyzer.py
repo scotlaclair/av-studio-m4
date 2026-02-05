@@ -152,22 +152,49 @@ class CostCalculator:
         """Estimate the cost for a request before making it."""
         pricing = self._get_pricing(model)
 
-        input_cost = (input_tokens / 1000) * pricing["input"]
-        output_cost = (output_tokens / 1000) * pricing["output"]
-        total = input_cost + output_cost
+        # Handle non-token pricing (e.g., per_character for elevenlabs)
+        if "input" in pricing and "output" in pricing:
+            input_cost = (input_tokens / 1000) * pricing["input"]
+            output_cost = (output_tokens / 1000) * pricing["output"]
+            total = input_cost + output_cost
 
-        return CostEstimate(
-            input_cost=input_cost,
-            output_cost=output_cost,
-            total_cost=total,
-            model=model,
-            breakdown={
-                "input_tokens": input_tokens,
-                "output_tokens": output_tokens,
-                "input_rate": pricing["input"],
-                "output_rate": pricing["output"],
-            },
-        )
+            return CostEstimate(
+                input_cost=input_cost,
+                output_cost=output_cost,
+                total_cost=total,
+                model=model,
+                breakdown={
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "input_rate": pricing["input"],
+                    "output_rate": pricing["output"],
+                },
+            )
+        elif "per_character" in pricing:
+            # Character-based pricing (e.g., elevenlabs)
+            # Rough estimate: assume ~4 characters per token
+            total_chars = (input_tokens + output_tokens) * 4
+            total_cost = total_chars * pricing["per_character"]
+
+            return CostEstimate(
+                input_cost=total_cost,
+                output_cost=0.0,
+                total_cost=total_cost,
+                model=model,
+                breakdown={
+                    "estimated_characters": total_chars,
+                    "per_character_rate": pricing["per_character"],
+                },
+            )
+        else:
+            # Unknown pricing format, return zero cost
+            return CostEstimate(
+                input_cost=0.0,
+                output_cost=0.0,
+                total_cost=0.0,
+                model=model,
+                breakdown={"note": "Unknown pricing format"},
+            )
 
     def record_cost(self, estimate: CostEstimate) -> None:
         """Record an actual cost after a request completes."""

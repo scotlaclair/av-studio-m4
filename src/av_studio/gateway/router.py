@@ -187,8 +187,8 @@ class SmartRouter:
             # Calculate estimated cost
             cost = self._calculate_cost(model, input_tokens, expected_output_tokens)
 
-            # Filter by cost
-            effective_max_cost = max_cost or self.config.max_cost_usd
+            # Filter by cost - handle explicit zero max_cost
+            effective_max_cost = self.config.max_cost_usd if max_cost is None else max_cost
             if cost > effective_max_cost:
                 continue
 
