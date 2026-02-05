@@ -135,6 +135,15 @@ module = [
     "librosa.*",
     "chromadb.*",
     "mcp.*",
+    "torch.*",
+    "torchaudio.*",
+    "tiktoken.*",
+    "transformers.*",
+    "pydantic.*",
+    "pydantic_settings.*",
+    "pyloudnorm.*",
+    "mlx.*",
+    "mlx_lm.*",
 ]
 ignore_missing_imports = true
 

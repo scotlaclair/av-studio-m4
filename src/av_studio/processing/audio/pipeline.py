@@ -5,7 +5,7 @@ Uses MPS (Metal) for GPU acceleration where possible.
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import demucs.api
 import torch
@@ -33,10 +33,10 @@ class AudioMetadata:
 class StemSeparationResult:
     """Result of stem separation."""
 
-    vocals: Path
-    drums: Path
-    bass: Path
-    other: Path
+    vocals: Path | None
+    drums: Path | None
+    bass: Path | None
+    other: Path | None
     original: Path
     model_used: str
 
@@ -49,7 +49,7 @@ class AudioProcessor:
     def __init__(self, output_dir: Path):
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self._demucs_separator = None
+        self._demucs_separator: Any = None
 
     def get_metadata(self, audio_path: Path) -> AudioMetadata:
         """Extract metadata from an audio file."""
@@ -109,7 +109,7 @@ class AudioProcessor:
     def apply_effects(
         self,
         audio_path: Path,
-        effects: list[dict],
+        effects: list[dict[str, Any]],
         output_path: Path | None = None,
     ) -> Path:
         """
@@ -157,7 +157,7 @@ class AudioProcessor:
         audio_path: Path,
         model_size: Literal["tiny", "base", "small", "medium", "large-v3"] = "large-v3",
         language: str | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """
         Transcribe audio using faster-whisper with GPU acceleration.
         """

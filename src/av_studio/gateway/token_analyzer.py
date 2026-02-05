@@ -28,7 +28,7 @@ class CostEstimate:
     total_cost: float
     currency: str = "USD"
     model: str = ""
-    breakdown: dict | None = None
+    breakdown: dict[str, Any] | None = None
 
 
 class TokenAnalyzer:
@@ -37,11 +37,11 @@ class TokenAnalyzer:
     Uses appropriate tokenizer based on model family.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._tokenizers: dict[str, Any] = {}
         self._tiktoken_encodings: dict[str, tiktoken.Encoding] = {}
 
-    def count_tokens(self, text: str | list[dict], model: str = "gpt-4o") -> TokenCount:
+    def count_tokens(self, text: str | list[dict[str, str]], model: str = "gpt-4o") -> TokenCount:
         """
         Count tokens for the given text or messages.
 
@@ -82,7 +82,7 @@ class TokenAnalyzer:
             method=method,
         )
 
-    def _messages_to_text(self, messages: list[dict]) -> str:
+    def _messages_to_text(self, messages: list[dict[str, str]]) -> str:
         """Convert chat messages to text for token counting."""
         parts = []
         for msg in messages:
@@ -143,7 +143,7 @@ class CostCalculator:
         "elevenlabs": {"per_character": 0.00003},
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.total_spent: float = 0.0
         self.budget_limit: float | None = None
         self.spending_history: list[CostEstimate] = []
@@ -169,7 +169,7 @@ class CostCalculator:
             },
         )
 
-    def record_cost(self, estimate: CostEstimate):
+    def record_cost(self, estimate: CostEstimate) -> None:
         """Record an actual cost after a request completes."""
         self.total_spent += estimate.total_cost
         self.spending_history.append(estimate)
@@ -185,11 +185,11 @@ class CostCalculator:
 
         return True, "Within budget"
 
-    def set_budget(self, limit: float):
+    def set_budget(self, limit: float) -> None:
         """Set a spending budget limit."""
         self.budget_limit = limit
 
-    def get_summary(self) -> dict:
+    def get_summary(self) -> dict[str, Any]:
         """Get a summary of spending."""
         by_model: dict[str, float] = {}
         for estimate in self.spending_history:
@@ -204,7 +204,7 @@ class CostCalculator:
             "request_count": len(self.spending_history),
         }
 
-    def _get_pricing(self, model: str) -> dict:
+    def _get_pricing(self, model: str) -> dict[str, float]:
         """Get pricing for a model, with fallback."""
         # Normalize model name
         model_lower = model.lower()

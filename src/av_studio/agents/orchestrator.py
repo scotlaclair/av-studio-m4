@@ -27,7 +27,7 @@ class AgentMessage:
 
     role: AgentRole
     content: str
-    metadata: dict = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -37,7 +37,7 @@ class Task:
     id: str
     description: str
     task_type: TaskType
-    parameters: dict = field(default_factory=dict)
+    parameters: dict[str, Any] = field(default_factory=dict)
     priority: int = 5  # 1-10, higher = more important
     status: str = "pending"
     result: Any | None = None
@@ -103,7 +103,7 @@ When you receive a request, analyze it and output a JSON plan like:
 }
 """
 
-    def register_agent(self, agent: BaseAgent):
+    def register_agent(self, agent: BaseAgent) -> None:
         """Register a specialized agent."""
         self.agents[agent.role] = agent
 
@@ -124,7 +124,7 @@ Respond with a JSON routing plan.
 
         try:
             plan = json.loads(plan_response)
-            results = []
+            results: list[Any] = []
 
             for subtask in plan.get("tasks", []):
                 agent_role = AgentRole(subtask["agent"].lower())

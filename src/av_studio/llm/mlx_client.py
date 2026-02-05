@@ -6,6 +6,7 @@ This provides the fastest local inference on M4 Max.
 import asyncio
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
+from typing import Any
 
 import mlx.core as mx
 from mlx_lm import generate, load, stream_generate
@@ -34,7 +35,7 @@ class MLXClient:
         self._tokenizer = None
         self._loaded_model_path: str | None = None
 
-    def load_model(self, model_path: str | None = None):
+    def load_model(self, model_path: str | None = None) -> None:
         """
         Load an MLX model into memory.
         Models are cached - only reloads if path changes.
@@ -74,7 +75,7 @@ class MLXClient:
             repetition_penalty=self.config.repetition_penalty,
         )
 
-        return response
+        return str(response)
 
     async def stream_generate(
         self,
@@ -118,7 +119,7 @@ class MLXClient:
 
 """
 
-    def get_model_info(self) -> dict:
+    def get_model_info(self) -> dict[str, Any]:
         """Get information about the loaded model."""
         if self._model is None:
             return {"status": "not_loaded"}

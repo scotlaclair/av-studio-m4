@@ -292,7 +292,7 @@ class SmartRouter:
 
         return f"Selected {model.model_id} for {task.value}: {', '.join(parts)}"
 
-    def record_latency(self, model_key: str, latency_ms: float):
+    def record_latency(self, model_key: str, latency_ms: float) -> None:
         """Record actual latency for future routing decisions."""
         if model_key not in self._latency_history:
             self._latency_history[model_key] = []

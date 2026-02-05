@@ -4,6 +4,7 @@ Model Context Protocol (MCP) server for extending studio capabilities.
 
 import json
 from pathlib import Path
+from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -12,8 +13,7 @@ from mcp.types import TextContent, Tool
 # Create MCP server
 app = Server("av-studio")
 
-
-@app.list_tools()
+@app.list_tools()  # type: ignore[untyped-decorator]
 async def list_tools() -> list[Tool]:
     """List available tools."""
     return [
@@ -109,8 +109,8 @@ async def list_tools() -> list[Tool]:
     ]
 
 
-@app.call_tool()
-async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+@app.call_tool()  # type: ignore[untyped-decorator]
+async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """Execute a tool call."""
 
     if name == "separate_stems":
@@ -125,10 +125,10 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                 type="text",
                 text=json.dumps(
                     {
-                        "vocals": str(result.vocals),
-                        "drums": str(result.drums),
-                        "bass": str(result.bass),
-                        "other": str(result.other),
+                        "vocals": str(result.vocals) if result.vocals else None,
+                        "drums": str(result.drums) if result.drums else None,
+                        "bass": str(result.bass) if result.bass else None,
+                        "other": str(result.other) if result.other else None,
                         "model": result.model_used,
                     },
                     indent=2,
@@ -139,11 +139,11 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     if name == "transcribe_audio":
         from av_studio.processing.audio.pipeline import audio_processor
 
-        result = audio_processor.transcribe(
+        transcribe_result: dict[str, Any] = audio_processor.transcribe(
             Path(arguments["audio_path"]),
             language=arguments.get("language"),
         )
-        return [TextContent(type="text", text=json.dumps(result, indent=2))]
+        return [TextContent(type="text", text=json.dumps(transcribe_result, indent=2))]
 
     if name == "analyze_cost":
         from av_studio.gateway.token_analyzer import cost_calculator, token_analyzer
@@ -196,7 +196,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
 
-async def main():
+async def main() -> None:
     """Run the MCP server."""
     async with stdio_server() as (read_stream, write_stream):
         await app.run(
