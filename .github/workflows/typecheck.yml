@@ -16,6 +16,9 @@ on:
       - 'pyproject.toml'
       - '.github/workflows/typecheck.yml'
 
+permissions:
+  contents: read
+
 jobs:
   typecheck:
     runs-on: ubuntu-latest
