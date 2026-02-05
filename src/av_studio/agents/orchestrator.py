@@ -8,10 +8,10 @@ from enum import Enum
 from abc import ABC, abstractmethod
 import json
 
-from llm.mlx_client import mlx_client, MLXClient
-from llm.ollama_client import OllamaClient
-from gateway.router import smart_router, TaskType, RoutingDecision
-from gateway.token_analyzer import token_analyzer, cost_calculator
+from av_studio.llm.mlx_client import mlx_client, MLXClient
+# from av_studio.llm.ollama_client import OllamaClient  # TODO: Create ollama_client module
+from av_studio.gateway.router import smart_router, TaskType, RoutingDecision
+from av_studio.gateway.token_analyzer import token_analyzer, cost_calculator
 
 
 class AgentRole(str, Enum):

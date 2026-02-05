@@ -7,7 +7,7 @@ from typing import Optional, Literal, Callable, Any
 from enum import Enum
 import time
 
-from config.settings import settings, ModelProvider
+from av_studio.config.settings import settings, ModelProvider
 
 
 class TaskType(str, Enum):
