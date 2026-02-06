@@ -3,6 +3,9 @@ name: Branch Configuration Helper
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   info:
     runs-on: ubuntu-latest
