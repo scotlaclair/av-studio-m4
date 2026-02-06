@@ -137,6 +137,24 @@ See [spec-kit/](./spec-kit/) for detailed specifications.
 - [ ] API layer (Phase 6)
 - [ ] MCP server (Phase 7)
 
+## 🤖 AI Agent Development Workflow
+
+This repository uses a `dev`-first workflow optimized for AI agent autonomy:
+
+- **dev**: Default branch for all development and AI agent work
+- **main**: Protected production branch, updated via PR from `dev` only
+
+### For AI Agents
+All AI coding assistants (@copilot, @claude, @codex, @gemini-code-assist) should:
+- Create PRs targeting the `dev` branch
+- Work freely on `dev` without restrictions
+- Follow the guidelines in `.github/copilot-instructions.md`
+
+### For Humans
+- Clone and work on `dev` branch by default
+- Create feature branches from `dev`
+- Merge to `main` only when `dev` is stable
+
 ## Contributing
 
 This is currently a personal project. Contributions will be welcome after v1.0.0 release.
