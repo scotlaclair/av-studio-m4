@@ -1,0 +1,29 @@
+name: Branch Configuration Helper
+
+on:
+  workflow_dispatch:
+
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Branch Setup Information
+        run: |
+          echo "🔧 Repository Branch Configuration"
+          echo "=================================="
+          echo ""
+          echo "✅ Default branch: dev"
+          echo "✅ AI agents have autonomy on dev branch"
+          echo "✅ PRs should target dev branch"
+          echo "🔒 main branch requires PRs from dev"
+          echo ""
+          echo "Manual steps required (repository owner):"
+          echo "1. Go to Settings → General → Default branch"
+          echo "2. Change default branch from 'main' to 'dev'"
+          echo "3. Go to Settings → Actions → General → Workflow permissions"
+          echo "4. Select 'Read and write permissions'"
+          echo "5. Check 'Allow GitHub Actions to create and approve pull requests'"
+          echo "6. Go to Settings → Branches → Add rule for 'main'"
+          echo "7. Enable 'Require a pull request before merging'"
+          echo "8. Set 'Require approvals' to 1"
+          echo "9. Add branch name pattern: dev (under 'Restrict pushes')"
