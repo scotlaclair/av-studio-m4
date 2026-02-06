@@ -11,6 +11,8 @@ git checkout main
 git pull origin main
 
 # Create dev branch from the specific commit
+# This commit (896b57e) is the last commit before the dev branch configuration changes
+# It represents the stable state of main before implementing the new branching strategy
 git checkout -b dev 896b57e2d205111df4ca61ee65562f8b689359f9
 
 # Push dev branch to remote

@@ -7,11 +7,10 @@
 
 ## AI Agent Permissions
 The following AI agents have autonomy on the `dev` branch:
-- @copilot
+- @copilot (GitHub Copilot bot)
 - @claude
 - @codex
 - @gemini-code-assist
-- @copilot (GitHub Copilot bot)
 
 ## Workflow
 1. All feature branches should be created from `dev`
