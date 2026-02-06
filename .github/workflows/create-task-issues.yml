@@ -1,0 +1,219 @@
+name: Create Task Issues from spec-kit/tasks.md
+
+on:
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: 'Which phase to create issues for (all, 1, 2, 3, 4, 5, 6, 7)'
+        required: false
+        default: 'all'
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install PyYAML
+
+      - name: Parse tasks and create issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PHASE: ${{ inputs.phase }}
+        run: |
+          python3 << 'EOF'
+          import os
+          import re
+          import json
+          import subprocess
+          import yaml
+
+          def parse_tasks_file(file_path):
+              """Parse the tasks.md file and extract all task definitions."""
+              with open(file_path, 'r') as f:
+                  content = f.read()
+
+              # Find all YAML blocks
+              yaml_blocks = re.findall(r'```yaml\n(.*?)\n```', content, re.DOTALL)
+
+              tasks = []
+              current_phase = None
+
+              # Also extract phase information
+              phase_pattern = r'## Phase (\d+): ([^\n]+)'
+              phases = re.findall(phase_pattern, content)
+
+              for block in yaml_blocks:
+                  try:
+                      # Parse YAML block which may contain multiple tasks
+                      items = yaml.safe_load(block)
+                      if isinstance(items, list):
+                          for item in items:
+                              if isinstance(item, dict) and 'id' in item:
+                                  tasks.append(item)
+                  except yaml.YAMLError as e:
+                      print(f"Error parsing YAML block: {e}")
+                      continue
+
+              return tasks
+
+          def determine_phase(task_id):
+              """Determine phase number from task ID."""
+              if task_id.startswith('INFRA-') or task_id.startswith('CFG-'):
+                  return 1
+              elif task_id.startswith('GW-'):
+                  return 2
+              elif task_id.startswith('LLM-'):
+                  return 3
+              elif task_id.startswith('AUD-'):
+                  return 4
+              elif task_id.startswith('AGT-'):
+                  return 5
+              elif task_id.startswith('API-'):
+                  return 6
+              elif task_id.startswith('MCP-'):
+                  return 7
+              return 0
+
+          def create_issue(task):
+              """Create a GitHub issue for a task."""
+              task_id = task['id']
+              title = f"[{task_id}] {task['title']}"
+
+              # Build issue body
+              body_parts = [
+                  f"## Task: {task_id}",
+                  "",
+                  f"**Type:** {task.get('type', 'N/A')}",
+                  f"**Priority:** {task.get('priority', 'N/A')}",
+                  f"**Estimate:** {task.get('estimate', 'N/A')} hours",
+                  f"**Assignee Type:** {task.get('assignee', 'N/A')}",
+                  "",
+              ]
+
+              # Add dependencies
+              if task.get('dependencies'):
+                  deps = task['dependencies']
+                  if deps:
+                      body_parts.append("### Dependencies")
+                      for dep in deps:
+                          body_parts.append(f"- #{dep}")
+                      body_parts.append("")
+
+              # Add acceptance criteria
+              if task.get('acceptance_criteria'):
+                  body_parts.append("### Acceptance Criteria")
+                  for criterion in task['acceptance_criteria']:
+                      body_parts.append(f"- [ ] {criterion}")
+                  body_parts.append("")
+
+              # Add files to create
+              if task.get('files_to_create'):
+                  body_parts.append("### Files to Create")
+                  for file in task['files_to_create']:
+                      body_parts.append(f"- `{file}`")
+                  body_parts.append("")
+
+              # Add files to modify
+              if task.get('files_to_modify'):
+                  body_parts.append("### Files to Modify")
+                  for file in task['files_to_modify']:
+                      body_parts.append(f"- `{file}`")
+                  body_parts.append("")
+
+              # Add tests
+              if task.get('tests'):
+                  body_parts.append("### Tests")
+                  for test in task['tests']:
+                      body_parts.append(f"- `{test}`")
+                  body_parts.append("")
+
+              # Add reference to spec
+              body_parts.extend([
+                  "---",
+                  "",
+                  "**Reference:** See [spec-kit/tasks.md](../blob/main/spec-kit/tasks.md) for full task breakdown.",
+                  "**Spec:** [spec-kit/spec.md](../blob/main/spec-kit/spec.md)",
+                  "**Plan:** [spec-kit/plan.md](../blob/main/spec-kit/plan.md)",
+              ])
+
+              body = "\n".join(body_parts)
+
+              # Determine labels
+              labels = []
+
+              # Priority label
+              priority = task.get('priority', 'P2')
+              priority_labels = {
+                  'P0': 'P0-critical',
+                  'P1': 'P1-high',
+                  'P2': 'P2-medium',
+                  'P3': 'P3-low',
+              }
+              if priority in priority_labels:
+                  labels.append(priority_labels[priority])
+
+              # Type label
+              task_type = task.get('type', 'feature')
+              labels.append(f"type:{task_type}")
+
+              # Phase label
+              phase = determine_phase(task_id)
+              labels.append(f"phase-{phase}")
+
+              # Create the issue using gh CLI
+              labels_str = ','.join(labels)
+
+              cmd = [
+                  'gh', 'issue', 'create',
+                  '--title', title,
+                  '--body', body,
+                  '--label', labels_str
+              ]
+
+              try:
+                  result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                  print(f"✓ Created issue: {title}")
+                  return result.stdout.strip()
+              except subprocess.CalledProcessError as e:
+                  print(f"✗ Failed to create issue {title}: {e.stderr}")
+                  return None
+
+          # Main execution
+          tasks_file = 'spec-kit/tasks.md'
+          tasks = parse_tasks_file(tasks_file)
+
+          phase_filter = os.environ.get('PHASE', 'all')
+
+          print(f"Found {len(tasks)} tasks")
+          print(f"Phase filter: {phase_filter}")
+          print("")
+
+          created_count = 0
+          for task in tasks:
+              task_id = task['id']
+              task_phase = determine_phase(task_id)
+
+              # Filter by phase if specified
+              if phase_filter != 'all' and str(task_phase) != phase_filter:
+                  continue
+
+              result = create_issue(task)
+              if result:
+                  created_count += 1
+
+          print("")
+          print(f"Summary: Created {created_count} issues")
+          EOF
